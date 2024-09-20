@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-
 import "./globals.css";
+import { ConvexClintProvider } from "@/components/providers/convex-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: "Jotion",
@@ -27,8 +28,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ConvexClintProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey="jotion-them-1"
+          >
+            {children}
+          </ThemeProvider>
+        </ConvexClintProvider>
+      </body>
     </html>
   );
 }
