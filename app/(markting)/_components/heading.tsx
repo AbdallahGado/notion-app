@@ -3,10 +3,9 @@
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
-import { useConvexAuth } from "convex/react";
 import { ArrowRight } from "lucide-react";
+import { useConvexAuth } from "convex/react";
 import Link from "next/link";
-
 export const Heading = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
 
@@ -25,17 +24,21 @@ export const Heading = () => {
       </div>
       {isAuthenticated && !isLoading && (
         <Link href="/documents">
-          <Button variant="outline" asChild>
-            Enter Jotion
-            <ArrowRight className="w-4 h-4 ml-2" />
+          <Button variant="outline">
+            <>
+              <span>Enter Jotion</span>
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </>
           </Button>
         </Link>
       )}
       {!isAuthenticated && !isLoading && (
         <SignInButton mode="modal">
           <Button variant="outline">
-            Get Jotion Free
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <>
+              <span>Sign In for free</span>
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </>
           </Button>
         </SignInButton>
       )}
