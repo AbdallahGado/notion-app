@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import "./globals.css";
 import { ConvexClintProvider } from "@/components/providers/convex-provider";
@@ -38,6 +39,7 @@ export default function RootLayout({
             disableTransitionOnChange
             storageKey="jotion-them-1"
           >
+            <Toaster position="bottom-center" />
             {children}
           </ThemeProvider>
         </ConvexClintProvider>
