@@ -6,11 +6,12 @@ import { SignInButton } from "@clerk/clerk-react";
 import { ArrowRight } from "lucide-react";
 import { useConvexAuth } from "convex/react";
 import Link from "next/link";
+
 export const Heading = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="space-y-4 max-w-3xl ">
       <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold ">
         Your Ideas, Documents, & Plans. Unified. welcome to{" "}
         <span className="hover:underline  text-indigo-400">Jotion</span>
@@ -24,7 +25,7 @@ export const Heading = () => {
       </div>
       {isAuthenticated && !isLoading && (
         <Link href="/documents">
-          <Button variant="outline">
+          <Button variant="outline" className="rounded-full hover:opacity-70">
             <>
               <span>Enter Jotion</span>
               <ArrowRight className="h-4 w-4 ml-2" />

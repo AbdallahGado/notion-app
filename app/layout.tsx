@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: "Jotion",
-  description: "The connected workspace where better faster work happens",
+  description: "The connected workspace where better faster work happens.",
   icons: {
     icon: [
       {
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="overflow-x-hidden">
         <ConvexClintProvider>
           <ThemeProvider
             attribute="class"

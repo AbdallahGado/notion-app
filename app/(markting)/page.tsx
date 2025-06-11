@@ -5,10 +5,10 @@ import Footer from "./_components/footer";
 const MarketingPage = () => {
   return (
     <div className="flex flex-col min-h-full">
-      <div className="flex flex-col items-center justify-center md:justify-start gap-y-8 flex-1 px-6 text-center pb-10">
+      <section className="flex flex-col items-center justify-center md:justify-start gap-y-8 flex-1 px-6 text-center pb-10">
         <Heading />
         <Heroes />
-      </div>
+      </section>
       <Footer />
     </div>
   );

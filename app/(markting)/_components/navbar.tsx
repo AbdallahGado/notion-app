@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Logo } from "./logo";
 import { useConvexAuth } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignInButton, UserButton} from "@clerk/clerk-react";
 import { Spinner } from "@/components/spinner";
 import { Link } from "lucide-react";
 
@@ -26,7 +26,7 @@ export const Navbar = () => {
         {!isLoading && !isAuthenticated && (
           <>
             <SignInButton mode="modal">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" >
                 Log In
               </Button>
             </SignInButton>
@@ -43,6 +43,8 @@ export const Navbar = () => {
               <Link href="/documents">Enter Jotion</Link>
             </Button>
             <UserButton afterSignOutUrl="/" />
+            {/* <UserProfile appearance={undefined} /> */}
+            {/* TODO: MAKE USER PROFILE PAGE TO THIS LINK BELOW */}
           </>
         )}
         <ModeToggle />
