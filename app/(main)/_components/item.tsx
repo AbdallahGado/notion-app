@@ -6,12 +6,9 @@ import { cn } from "@/lib/utils";
 
 interface ItemProps {
   id: Id<"documents">;
-  documentIcon?: string;
   active?: boolean;
   expanded?: boolean;
-  isSearch?: boolean;
   level?: number;
-  onExpand?: () => void;
   label: string;
   onClick: () => void;
   icon: LucideIcon;
@@ -23,10 +20,7 @@ export const Item = ({
   onClick,
   icon: Icon,
   active,
-  documentIcon,
-  isSearch,
   level = 0,
-  onExpand,
   expanded,
 }: ItemProps) => {
   const ChevronIcon = expanded ? ChevronUp : ChevronDown;

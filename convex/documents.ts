@@ -80,6 +80,7 @@ export const create = mutation({
   args: {
     title: v.string(),
     parentDocument: v.optional(v.id("documents")),
+    isFolder: v.optional(v.boolean()),
   },
   handler: async (context, args) => {
     const identity = await context.auth.getUserIdentity();
@@ -96,6 +97,7 @@ export const create = mutation({
       userId,
       isArchived: false,
       isPublished: false,
+      isFolder: args.isFolder ?? false,
     });
 
     return document;
@@ -265,6 +267,8 @@ export const update = mutation({
     coverImage: v.optional(v.string()),
     icon: v.optional(v.string()),
     isPublished: v.optional(v.boolean()),
+    parentDocument: v.optional(v.id("documents")), // <-- allow parentDocument
+    isFolder: v.optional(v.boolean()),
   },
   handler: async (context, args) => {
     const identity = await context.auth.getUserIdentity();
@@ -350,5 +354,20 @@ export const removeCoverImage = mutation({
     });
 
     return document;
+  },
+});
+
+export const toggleStarred = mutation({
+  args: { id: v.id("documents") },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const userId = identity.subject;
+    const doc = await context.db.get(args.id);
+    if (!doc) throw new Error("Not found");
+    if (doc.userId !== userId) throw new Error("Unauthorized");
+    const newStarred = !doc.starred;
+    await context.db.patch(args.id, { starred: newStarred });
+    return { starred: newStarred };
   },
 });

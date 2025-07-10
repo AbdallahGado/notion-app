@@ -3,17 +3,25 @@ import { Logo } from "./logo";
 
 const Footer = () => {
   return (
-    <div className="flex items-center justify-center w-full p-6 bg-background z-50 dark:bg-[#1F1F1F]">
-      <Logo />
-      <div className="md:ml-auto w-full p-6 justify-between md:justify-end flex items-center gap-x-2 text-muted-foreground">
-        <Button variant="ghost" size="sm" className="hover:opacity-50">
-            Privacy Policy
+    <footer className="w-full border-t border-gray-100 dark:border-[#23233a] bg-transparent py-8 px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-2">
+        <Logo />
+        <span className="hidden md:inline-block">
+          © {new Date().getFullYear()} Jotion. All rights reserved.
+        </span>
+      </div>
+      <div className="flex gap-4">
+        <Button variant="ghost" size="sm" className="hover:opacity-70">
+          Privacy Policy
         </Button>
-        <Button variant="ghost" size="sm" className="hover:opacity-50">
-            Terms & Conditions
+        <Button variant="ghost" size="sm" className="hover:opacity-70">
+          Terms & Conditions
         </Button>
       </div>
-    </div>
+      <span className="md:hidden block text-center w-full mt-2">
+        © {new Date().getFullYear()} Jotion. All rights reserved.
+      </span>
+    </footer>
   );
 };
 

@@ -3,11 +3,12 @@
 import { Spinner } from "@/components/spinner";
 import { useConvexAuth } from "convex/react";
 import { redirect } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { Navigation } from "./_components/navigation";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (isLoading) {
     return (
@@ -21,9 +22,15 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     return redirect("/");
   }
   return (
-    <div className="h-full flex dark:bg-[#1F1F1F]">
-      <Navigation />
-      <main className="flex-1 h-full overflow-y-auto">{children}</main>
+    <div className="h-screen w-screen flex dark:bg-[#1F1F1F] overflow-hidden">
+      <div
+        className={`h-screen ${isCollapsed ? "w-0" : "w-64"} flex-shrink-0 z-30 transition-all duration-300`}
+      >
+        <Navigation isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      </div>
+      <main className="flex-1 h-screen overflow-y-auto bg-gray-50 dark:bg-[#18181B]">
+        {children}
+      </main>
     </div>
   );
 }

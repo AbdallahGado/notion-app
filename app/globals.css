@@ -2,3 +2,143 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: 248 100% 99%;
+  --foreground: 240 10% 10%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 240 10% 10%;
+  --accent: 200 100% 85%;
+  --accent-foreground: 240 10% 10%;
+  --muted: 220 14% 90%;
+  --muted-foreground: 240 10% 40%;
+  --border: 220 14% 90%;
+  --input: 220 14% 96%;
+  --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 240 10% 10%;
+    --foreground: 248 100% 99%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 248 100% 99%;
+    --accent: 243 75% 59%;
+    --accent-foreground: 248 100% 99%;
+    --muted: 240 6% 20%;
+    --muted-foreground: 248 100% 80%;
+    --border: 240 6% 20%;
+    --input: 240 6% 16%;
+    --radius: 1rem;
+  }
+}
+
+body,
+html {
+  font-family: "Inter", "Poppins", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+    sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", "Inter", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+    sans-serif;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+a:hover,
+a:focus {
+  color: hsl(var(--accent));
+}
+
+button,
+[role="button"] {
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+button:focus-visible,
+[role="button"]:focus-visible {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.5);
+}
+
+@keyframes gradient-move {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient-move {
+  background-size: 200% 200%;
+  animation: gradient-move 3s ease-in-out infinite;
+}
+
+/* Sidebar custom scrollbar */
+.group\/sidebar::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+  transition: width 0.2s;
+}
+.group\/sidebar:hover::-webkit-scrollbar {
+  width: 8px;
+}
+.group\/sidebar::-webkit-scrollbar-thumb {
+  background: #a5b4fc; /* indigo-200 */
+  border-radius: 8px;
+}
+.group\/sidebar:hover::-webkit-scrollbar-thumb {
+  background: #6366f1; /* indigo-500 */
+}
+
+.group\/sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #a5b4fc transparent;
+}
+.group\/sidebar:hover {
+  scrollbar-color: #6366f1 #f3f4f6;
+}
+
+/* Custom dropdown menu background - more visible */
+[data-radix-popper-content-wrapper] .bg-white {
+  background: #fff !important;
+  box-shadow:
+    0 8px 32px 0 rgba(60, 60, 120, 0.22),
+    0 1.5px 6px 0 rgba(60, 60, 120, 0.16) !important;
+}
+[data-radix-popper-content-wrapper] .dark\:bg-\[\#23233a\] {
+  background: #23233a !important;
+  box-shadow:
+    0 8px 32px 0 rgba(30, 30, 60, 0.38),
+    0 1.5px 6px 0 rgba(30, 30, 60, 0.22) !important;
+}
+
+/* Fix dropdown menu background for popover class */
+.bg-popover {
+  background: #fff !important;
+  box-shadow:
+    0 8px 32px 0 rgba(60, 60, 120, 0.22),
+    0 1.5px 6px 0 rgba(60, 60, 120, 0.16) !important;
+}
+.dark .bg-popover {
+  background: #23233a !important;
+  box-shadow:
+    0 8px 32px 0 rgba(30, 30, 60, 0.38),
+    0 1.5px 6px 0 rgba(30, 30, 60, 0.22) !important;
+}

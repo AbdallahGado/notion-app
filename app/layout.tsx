@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConvexClintProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
+
 export const metadata: Metadata = {
   title: "Jotion",
   description: "The connected workspace where better faster work happens.",
