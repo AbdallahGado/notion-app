@@ -1,3 +1,6 @@
+[![CI](https://github.com/AbdallahGado/notion-app/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdallahGado/notion-app/actions/workflows/ci.yml)
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -34,3 +37,22 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Developer setup
+
+After cloning the repo, run the following to install deps and enable Git hooks:
+
+```bash
+npm ci
+npm run prepare    # installs Husky hooks
+```
+
+To run checks locally:
+
+```bash
+npm run lint
+node node_modules/typescript/lib/tsc.js --noEmit -p tsconfig.json
+npm test
+```
+
+If you edit tooling (husky / lint-staged), re-run `npm run prepare`.

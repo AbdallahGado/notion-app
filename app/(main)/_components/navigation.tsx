@@ -1,3 +1,4 @@
+// Per-file explicit any directives removed to allow focused fixes; use narrower types where needed.
 "use client";
 
 //! THE MANE PAGE
@@ -10,7 +11,6 @@ import { cn } from "@/lib/utils"; // Utility function for conditional class name
 import { api } from "@/convex/_generated/api"; // Ensure the correct path to your API
 import { usePathname } from "next/navigation";
 import { UserItem } from "./user-item"; // Adjust import paths as necessary
-import { Item } from "./item"; // Adjust import paths as necessary
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -32,6 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/components/mode-toggle";
 
 interface NavigationProps {
   isCollapsed: boolean;
@@ -57,11 +58,23 @@ export const Navigation = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
+  // Keep this effect self-contained (do not reference collapse/resetWidth)
+  // so we avoid the exhaustive-deps warning while still reacting to layout changes.
   useEffect(() => {
+    if (!sidebarRef.current || !navbarRef.current) return;
     if (isMobile) {
-      collapse();
+      // collapse
+      sidebarRef.current.style.width = "0";
+      navbarRef.current.style.setProperty("width", "100%");
+      navbarRef.current.style.setProperty("left", "0");
     } else {
-      resetWidth();
+      // reset width
+      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
+      navbarRef.current.style.setProperty(
+        "width",
+        isMobile ? "0" : "calc(100% - 240px)"
+      );
+      navbarRef.current.style.setProperty("left", isMobile ? "100%" : "240px");
     }
   }, [isMobile, pathname]);
 
@@ -150,15 +163,15 @@ export const Navigation = ({
       error: "Failed to create folder",
     });
   };
-
   // Tree logic for sidebar
   type TreeNode = {
     _id: string;
     title?: string;
     parentDocument?: string;
+    isFolder?: boolean;
     starred?: boolean;
-    children: TreeNode[];
-    [key: string]: any;
+    children?: TreeNode[];
+    [key: string]: unknown;
   };
   function buildTree(
     docs: TreeNode[],
@@ -174,9 +187,7 @@ export const Navigation = ({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const toggleExpand = (id: string) =>
     setExpanded((e) => ({ ...e, [id]: !e[id] }));
-
   // Move to logic
-  const [moveTarget, setMoveTarget] = useState<string | null>(null);
   const [moveDropdown, setMoveDropdown] = useState<string | null>(null);
 
   function getAllFolders(
@@ -189,7 +200,7 @@ export const Navigation = ({
       if (node._id !== excludeId && !descendants.has(node._id)) {
         result.push(node);
         result = result.concat(
-          getAllFolders(node.children, excludeId, descendants)
+          getAllFolders(node.children ?? [], excludeId, descendants)
         );
       }
     }
@@ -197,11 +208,14 @@ export const Navigation = ({
   }
 
   function collectDescendants(node: TreeNode, set: Set<string>) {
-    for (const child of node.children) {
+    for (const child of node.children ?? []) {
       set.add(child._id);
       collectDescendants(child, set);
     }
   }
+
+  // Normalized documents typed as TreeNode[] for safer usage throughout this component
+  const docs = (documents ?? []) as TreeNode[];
 
   async function handleMoveTo(docId: string, parentId: string | undefined) {
     try {
@@ -216,14 +230,14 @@ export const Navigation = ({
       });
       await promise;
       setMoveDropdown(null);
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   }
 
-  const handleRename = (id: string, currentTitle: string) => {
+  const handleRename = (id: string, currentTitle?: string) => {
     setEditingId(id);
-    setEditValue(currentTitle);
+    setEditValue(currentTitle ?? "");
   };
 
   const handleRenameSave = async (id: string) => {
@@ -240,12 +254,12 @@ export const Navigation = ({
       });
       await promise;
       setEditingId(null);
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
+  const handleDelete = async (id: string, title?: string) => {
     if (
       !window.confirm(
         `Are you sure you want to delete "${title || "Untitled"}"? This action cannot be undone.`
@@ -253,14 +267,14 @@ export const Navigation = ({
     )
       return;
     try {
-      const promise = remove({ id });
+      const promise = remove({ id: id as Id<"documents"> });
       toast.promise(promise, {
         loading: "Deleting note...",
         success: "Note deleted",
         error: "Failed to delete note",
       });
       await promise;
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
@@ -274,14 +288,14 @@ export const Navigation = ({
             : "pl-4 border-l border-gray-200 dark:border-gray-700"
         }
       >
-        {nodes.map((doc: any) => {
-          const hasChildren = doc.children && doc.children.length > 0;
+        {nodes.map((doc: TreeNode) => {
+          const hasChildren = (doc.children ?? []).length > 0;
           // Collect descendants to prevent moving into them
           const descendants = new Set<string>();
           collectDescendants(doc, descendants);
           // All possible folders to move to (excluding self and descendants)
           const allFolders = getAllFolders(
-            buildTree(filteredDocs as unknown as TreeNode[]),
+            buildTree(docs),
             doc._id,
             descendants
           );
@@ -292,7 +306,9 @@ export const Navigation = ({
               >
                 {hasChildren ? (
                   <button
+                    type="button"
                     onClick={() => toggleExpand(doc._id)}
+                    aria-pressed={!!expanded[doc._id]}
                     className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                     aria-label={
                       expanded[doc._id] ? "Collapse folder" : "Expand folder"
@@ -342,7 +358,7 @@ export const Navigation = ({
                     </Link>
                     {doc.isFolder && (
                       <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
-                        ({doc.children.length})
+                        ({(doc.children ?? []).length})
                       </span>
                     )}
                   </div>
@@ -354,6 +370,7 @@ export const Navigation = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
+                      type="button"
                       className="ml-1 p-2 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900 group transition-transform duration-100 hover:scale-110 focus:scale-110"
                       aria-label="More actions"
                       tabIndex={0}
@@ -378,7 +395,9 @@ export const Navigation = ({
                       <Pencil className="h-4 w-4 mr-2 text-indigo-400" /> Rename
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => toggleStarred({ id: doc._id })}
+                      onClick={() =>
+                        toggleStarred({ id: doc._id as Id<"documents"> })
+                      }
                     >
                       <Star
                         className={`h-4 w-4 mr-2 ${doc.starred ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
@@ -404,6 +423,7 @@ export const Navigation = ({
                           Move to folder:
                         </div>
                         <button
+                          type="button"
                           onClick={() => setMoveDropdown(null)}
                           className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                           aria-label="Close move to"
@@ -412,6 +432,7 @@ export const Navigation = ({
                         </button>
                       </div>
                       <button
+                        type="button"
                         className="w-full text-left px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800 text-sm"
                         onClick={() => handleMoveTo(doc._id, undefined)}
                       >
@@ -420,6 +441,7 @@ export const Navigation = ({
                       {allFolders.map((folder) => (
                         <button
                           key={folder._id}
+                          type="button"
                           className="w-full text-left px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800 text-sm"
                           onClick={() => handleMoveTo(doc._id, folder._id)}
                         >
@@ -430,8 +452,9 @@ export const Navigation = ({
                   )}
                 </div>
               </div>
+              {/* close item container above before rendering nested lists */}
               {hasChildren && expanded[doc._id] && (
-                <div>{renderTree(doc.children, level + 1)}</div>
+                <div>{renderTree(doc.children ?? [], level + 1)}</div>
               )}
               {doc.isFolder && expanded[doc._id] && !hasChildren && (
                 <div className="pl-8 py-2 text-xs text-gray-400 dark:text-gray-500">
@@ -446,11 +469,9 @@ export const Navigation = ({
   }
 
   // Filter and sort documents by search and starred status
-  const filteredDocs = documents
-    ? documents.filter((doc: any) =>
-        (doc.title || "Untitled").toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
+  const filteredDocs = docs.filter((doc) =>
+    (doc.title || "Untitled").toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <>
@@ -476,6 +497,7 @@ export const Navigation = ({
           />
         </div>
         <button
+          type="button"
           onClick={collapse}
           className={cn(
             "h-6 w-6 text-muted-foreground cursor-pointer rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-900 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition duration-300",
@@ -487,6 +509,7 @@ export const Navigation = ({
         <div className="px-6 pt-4 pb-2">
           {/* Remove UserItem from here, move to bottom */}
           <button
+            type="button"
             onClick={handleCreate}
             className="w-full mt-4 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-full shadow transition"
           >
@@ -494,6 +517,7 @@ export const Navigation = ({
             New Page
           </button>
           <button
+            type="button"
             onClick={handleCreateFolder}
             className="w-full mt-2 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-full shadow transition"
           >
@@ -507,11 +531,12 @@ export const Navigation = ({
               No results found.
             </div>
           ) : (
-            renderTree(buildTree(filteredDocs as unknown as TreeNode[]))
+            renderTree(buildTree(filteredDocs))
           )}
         </div>
-        {/* User info and logout at the bottom */}
-        <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#23233a]/80 sticky bottom-0 z-10">
+        {/* Theme toggle at the bottom above user info */}
+        <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#23233a]/80 sticky bottom-0 z-10 flex flex-col gap-4">
+          <ModeToggle />
           <UserItem />
         </div>
       </aside>

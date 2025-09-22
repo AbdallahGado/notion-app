@@ -281,7 +281,7 @@ export const update = mutation({
 
     const { id, ...rest } = args;
 
-    const existingDocument = await context.db.get(args.id);
+    const existingDocument = await context.db.get(id);
 
     if (!existingDocument) {
       throw new Error("Not found");
@@ -291,7 +291,7 @@ export const update = mutation({
       throw new Error("Unauthorized");
     }
 
-    const document = await context.db.patch(args.id, {
+    const document = await context.db.patch(id, {
       ...rest,
     });
 

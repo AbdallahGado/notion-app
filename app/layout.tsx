@@ -4,7 +4,6 @@ import "./globals.css";
 import { ConvexClintProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
-
 export const metadata: Metadata = {
   title: "Jotion",
   description: "The connected workspace where better faster work happens.",
@@ -24,6 +23,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Per Next.js metadata guidance, themeColor should live in the viewport export
+export const viewport = {
+  themeColor: "#1F1F1F",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +42,7 @@ export default function RootLayout({
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-            storageKey="jotion-them-1"
+            storageKey="jotion-theme-1"
           >
             <Toaster position="bottom-center" />
             {children}

@@ -16,4 +16,28 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentDocument"]),
+  comments: defineTable({
+    documentId: v.id("documents"),
+    from: v.number(),
+    to: v.number(),
+    text: v.string(),
+    resolved: v.boolean(),
+    replies: v.optional(
+      v.array(
+        v.object({
+          text: v.string(),
+          id: v.number(),
+          resolved: v.boolean(),
+          userId: v.optional(v.string()),
+          userName: v.optional(v.string()),
+          userAvatar: v.optional(v.string()),
+          createdAt: v.optional(v.number()),
+        })
+      )
+    ),
+    userId: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    userAvatar: v.optional(v.string()),
+    createdAt: v.optional(v.number()),
+  }).index("by_document", ["documentId"]),
 });

@@ -65,7 +65,7 @@ function DocumentsPage() {
         success: "New note created",
         error: "Failed to create a new note",
       });
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
@@ -85,7 +85,7 @@ function DocumentsPage() {
         error: "Failed to delete note",
       });
       await promise;
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
@@ -106,7 +106,7 @@ function DocumentsPage() {
       });
       await promise;
       setEditingId(null);
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
@@ -139,7 +139,7 @@ function DocumentsPage() {
   function getAllFolders(
     tree: TreeNode[],
     excludeId: string,
-    descendants: Set<string> = new Set()
+    descendants = new Set()
   ): TreeNode[] {
     let result: TreeNode[] = [];
     for (const node of tree) {
@@ -171,7 +171,7 @@ function DocumentsPage() {
       });
       await promise;
       setMoveDropdown(null);
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   }

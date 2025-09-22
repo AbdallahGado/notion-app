@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export const UserItem = () => {
   const { user } = useUser();
@@ -53,16 +54,21 @@ export const UserItem = () => {
             </div>
           </div>
           <p className="text-xs font-medium leading-none text-muted-foreground">
-            {user?.emailAddresses[0].emailAddress}
+            {user?.emailAddresses?.[0]?.emailAddress || ""}
           </p>
+        </div>
+        <DropdownMenuSeparator />
+        {/* Settings section with label and theme toggle */}
+        <div className="px-4 py-3 bg-gray-400/30 dark:bg-gray-700/30 rounded-lg flex flex-col items-center gap-2 mb-2">
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 tracking-wide uppercase mb-1">
+            Settings
+          </span>
+          <ModeToggle />
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="w-full cursor-pointer text-muted-foreground">
           <SignOutButton>
-            <Button
-              variant="outline"
-              className="w-full rounded-full " 
-            >
+            <Button variant="outline" className="w-full rounded-full ">
               Sign Out
             </Button>
           </SignOutButton>

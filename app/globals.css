@@ -4,15 +4,15 @@
 
 :root {
   --background: 248 100% 99%;
-  --foreground: 240 10% 10%;
+  --foreground: 0 0% 0%;
   --primary: 243 75% 59%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 96%;
-  --secondary-foreground: 240 10% 10%;
+  --secondary-foreground: 0 0% 0%;
   --accent: 200 100% 85%;
-  --accent-foreground: 240 10% 10%;
+  --accent-foreground: 0 0% 0%;
   --muted: 220 14% 90%;
-  --muted-foreground: 240 10% 40%;
+  --muted-foreground: 0 0% 0%;
   --border: 220 14% 90%;
   --input: 220 14% 96%;
   --radius: 1rem;
@@ -21,15 +21,15 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: 240 10% 10%;
-    --foreground: 248 100% 99%;
+    --foreground: 0 0% 100%;
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 6% 16%;
-    --secondary-foreground: 248 100% 99%;
+    --secondary-foreground: 0 0% 100%;
     --accent: 243 75% 59%;
-    --accent-foreground: 248 100% 99%;
+    --accent-foreground: 0 0% 100%;
     --muted: 240 6% 20%;
-    --muted-foreground: 248 100% 80%;
+    --muted-foreground: 0 0% 100%;
     --border: 240 6% 20%;
     --input: 240 6% 16%;
     --radius: 1rem;
@@ -38,10 +38,16 @@
 
 body,
 html {
-  font-family: "Inter", "Poppins", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+  font-family:
+    "Inter", "Poppins", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
     sans-serif;
-  color: hsl(var(--foreground));
+  color: #000;
   background: hsl(var(--background));
+  overflow-x: hidden;
+}
+.dark body,
+.dark html {
+  color: #fff !important;
 }
 
 h1,
@@ -50,10 +56,19 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Poppins", "Inter", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+  font-family:
+    "Poppins", "Inter", "Segoe UI", "Roboto", "Helvetica Neue", Arial,
     sans-serif;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: #000;
+}
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #fff !important;
 }
 
 a {
@@ -90,7 +105,6 @@ button:focus-visible,
   animation: gradient-move 3s ease-in-out infinite;
 }
 
-/* Sidebar custom scrollbar */
 .group\/sidebar::-webkit-scrollbar {
   width: 0px;
   background: transparent;
@@ -100,13 +114,12 @@ button:focus-visible,
   width: 8px;
 }
 .group\/sidebar::-webkit-scrollbar-thumb {
-  background: #a5b4fc; /* indigo-200 */
+  background: #a5b4fc;
   border-radius: 8px;
 }
 .group\/sidebar:hover::-webkit-scrollbar-thumb {
-  background: #6366f1; /* indigo-500 */
+  background: #6366f1;
 }
-
 .group\/sidebar {
   scrollbar-width: thin;
   scrollbar-color: #a5b4fc transparent;
@@ -115,30 +128,141 @@ button:focus-visible,
   scrollbar-color: #6366f1 #f3f4f6;
 }
 
-/* Custom dropdown menu background - more visible */
 [data-radix-popper-content-wrapper] .bg-white {
   background: #fff !important;
   box-shadow:
-    0 8px 32px 0 rgba(60, 60, 120, 0.22),
-    0 1.5px 6px 0 rgba(60, 60, 120, 0.16) !important;
+    0 8px 32px rgba(60, 60, 120, 0.22),
+    0 1.5px 6px rgba(60, 60, 120, 0.16) !important;
 }
 [data-radix-popper-content-wrapper] .dark\:bg-\[\#23233a\] {
   background: #23233a !important;
   box-shadow:
-    0 8px 32px 0 rgba(30, 30, 60, 0.38),
-    0 1.5px 6px 0 rgba(30, 30, 60, 0.22) !important;
+    0 8px 32px rgba(30, 30, 60, 0.38),
+    0 1.5px 6px rgba(30, 30, 60, 0.22) !important;
 }
 
-/* Fix dropdown menu background for popover class */
 .bg-popover {
   background: #fff !important;
   box-shadow:
-    0 8px 32px 0 rgba(60, 60, 120, 0.22),
-    0 1.5px 6px 0 rgba(60, 60, 120, 0.16) !important;
+    0 8px 32px rgba(60, 60, 120, 0.22),
+    0 1.5px 6px rgba(60, 60, 120, 0.16) !important;
 }
 .dark .bg-popover {
   background: #23233a !important;
   box-shadow:
-    0 8px 32px 0 rgba(30, 30, 60, 0.38),
-    0 1.5px 6px 0 rgba(30, 30, 60, 0.22) !important;
+    0 8px 32px rgba(30, 30, 60, 0.38),
+    0 1.5px 6px rgba(30, 30, 60, 0.22) !important;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+  margin-left: 1.5em;
+}
+.tiptap ol {
+  list-style-type: decimal;
+  margin-left: 1.5em;
+}
+.tiptap li {
+  margin-bottom: 0.25em;
+}
+
+.tiptap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.tiptap th,
+.tiptap td {
+  border: 1px solid #d1d5db;
+  padding: 0.5em 0.75em;
+  background: #fff;
+}
+.tiptap th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+.dark .tiptap th,
+.dark .tiptap td {
+  border-color: #374151;
+  background: #23233a;
+}
+.dark .tiptap th {
+  background: #18181b;
+}
+
+.tiptap th,
+.tiptap td {
+  text-align: left;
+}
+.tiptap th[style*="text-align: center"],
+.tiptap td[style*="text-align: center"] {
+  text-align: center;
+}
+.tiptap th[style*="text-align: right"],
+.tiptap td[style*="text-align: right"] {
+  text-align: right;
+}
+
+.tiptap .text-align-center {
+  text-align: center;
+}
+.tiptap .text-align-right {
+  text-align: right;
+}
+.tiptap .text-align-left {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  nav[role="toolbar"]::-webkit-scrollbar {
+    height: 6px;
+  }
+  nav[role="toolbar"]::-webkit-scrollbar-thumb {
+    background: #a5b4fc;
+    border-radius: 4px;
+  }
+  nav[role="toolbar"]::-webkit-scrollbar-track {
+    background: #e0e7ff;
+  }
+  .toolbar-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.2rem;
+  }
+}
+.toolbar-scroll-fade {
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 32px;
+  height: 100%;
+  background: linear-gradient(
+    to left,
+    rgba(248, 250, 255, 0.9) 60%,
+    transparent 100%
+  );
+  z-index: 10;
+}
+.dark .toolbar-scroll-fade {
+  background: linear-gradient(
+    to left,
+    rgba(35, 35, 58, 0.95) 60%,
+    transparent 100%
+  );
+}
+
+.glassy-toolbar {
+  @apply fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-2xl border border-white/20 backdrop-blur-md shadow-xl bg-white/30 dark:bg-[#23233acc];
+}
+
+.glassy-toolbar-group {
+  @apply flex items-center gap-1 px-2 py-1 rounded-xl bg-white/50 dark:bg-[#2f2f45cc] border border-white/20 shadow;
+}
+
+.toolbar-icon {
+  @apply w-6 h-6;
+}
+.toolbar-icon-sm {
+  @apply w-4 h-4;
 }
