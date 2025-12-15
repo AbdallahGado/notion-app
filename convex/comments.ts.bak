@@ -1,0 +1,207 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+
+export type Reply = {
+  id: string;
+  from: number;
+  to: number;
+  text: string;
+  userId?: string;
+  userName?: string;
+  userAvatar?: string;
+  resolved?: boolean;
+};
+
+export type CommentRecord = {
+  _id: string;
+  from: number;
+  to: number;
+  text: string;
+  replies?: Reply[];
+  resolved?: boolean;
+  userId?: string;
+  userName?: string;
+  userAvatar?: string;
+  [key: string]: any;
+};
+
+/**
+ * Convex server handlers for comments.
+ * createdAt is stored as a number (timestamp).
+ * Use `any` internally if generated types differ.
+ */
+
+/* Create a comment */
+export const create = mutation({
+  args: {
+    documentId: v.id("documents"),
+    text: v.string(),
+    from: v.number(),
+    to: v.number(),
+    userId: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    userAvatar: v.optional(v.string()),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity && !args.userId) throw new Error("Not authenticated");
+    const userId = args.userId ?? identity!.subject;
+
+    const comment = await context.db.insert("comments", {
+      documentId: args.documentId,
+      text: args.text,
+      from: args.from,
+      to: args.to,
+      replies: [],
+      userId,
+      userName: args.userName,
+      userAvatar: args.userAvatar,
+      resolved: false,
+      createdAt: Date.now(),
+    } as any);
+
+    return comment as any;
+  },
+});
+
+/* Get comments for a document */
+export const getByDocument = query({
+  args: { documentId: v.id("documents") },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const comments = await context.db
+      .query("comments")
+      .filter((q) => q.eq(q.field("documentId"), args.documentId))
+      .order("desc")
+      .collect();
+
+    return comments as any;
+  },
+});
+
+/* Update a comment */
+export const update = mutation({
+  args: {
+    id: v.id("comments"),
+    text: v.optional(v.string()),
+    resolved: v.optional(v.boolean()),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const existing = await context.db.get(args.id);
+    if (!existing) throw new Error("Not found");
+    if (existing.userId !== identity.subject) throw new Error("Unauthorized");
+
+    const patch: Record<string, any> = {};
+    if (args.text !== undefined) patch.text = args.text;
+    if (args.resolved !== undefined) patch.resolved = args.resolved;
+
+    return (await context.db.patch(args.id, patch)) as any;
+  },
+});
+
+/* Remove a comment */
+export const remove = mutation({
+  args: { id: v.id("comments") },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const existing = await context.db.get(args.id);
+    if (!existing) throw new Error("Not found");
+    if (existing.userId !== identity.subject) throw new Error("Unauthorized");
+
+    await context.db.delete(args.id);
+    return null as any;
+  },
+});
+
+/* Add a reply */
+export const addReply = mutation({
+  args: {
+    commentId: v.id("comments"),
+    from: v.number(),
+    to: v.number(),
+    text: v.string(),
+    userId: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    userAvatar: v.optional(v.string()),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity && !args.userId) throw new Error("Not authenticated");
+    const userId = args.userId ?? identity!.subject;
+
+    const comment = await context.db.get(args.commentId);
+    if (!comment) throw new Error("Not found");
+
+    const newReply: any = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      from: args.from,
+      to: args.to,
+      text: args.text,
+      userId,
+      userName: args.userName,
+      userAvatar: args.userAvatar,
+      createdAt: Date.now(),
+      resolved: false,
+    };
+
+    const updatedReplies = [
+      ...(comment.replies ?? ([] as any[])),
+      newReply,
+    ] as any[];
+    await context.db.patch(args.commentId, { replies: updatedReplies } as any);
+
+    return newReply as any;
+  },
+});
+
+/* Edit a reply */
+export const editReply = mutation({
+  args: {
+    commentId: v.id("comments"),
+    replyId: v.string(),
+    text: v.string(),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const comment = await context.db.get(args.commentId);
+    if (!comment) throw new Error("Not found");
+
+    const replies = (comment.replies ?? []).map((r: any) =>
+      r.id === args.replyId ? { ...r, text: args.text } : r
+    );
+
+    await context.db.patch(args.commentId, { replies } as any);
+    return replies.find((r: any) => r.id === args.replyId) ?? null;
+  },
+});
+
+/* Delete a reply */
+export const deleteReply = mutation({
+  args: {
+    commentId: v.id("comments"),
+    replyId: v.string(),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const comment = await context.db.get(args.commentId);
+    if (!comment) throw new Error("Not found");
+
+    const replies = (comment.replies ?? []).filter(
+      (r: any) => r.id !== args.replyId
+    );
+    await context.db.patch(args.commentId, { replies } as any);
+    return null as any;
+  },
+});

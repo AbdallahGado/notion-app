@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+﻿import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
@@ -259,6 +259,28 @@ export const getById = query({
   },
 });
 
+export const getByDocument = query({
+  args: { documentId: v.id("documents") },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
+    const documents = await context.db
+      .query("documents")
+      .withIndex("by_user_parent", (q) =>
+        q.eq("userId", userId).eq("parentDocument", args.documentId)
+      )
+      .filter((q) => q.eq(q.field("isArchived"), false))
+      .order("desc")
+      .collect();
+
+    return documents;
+  },
+});
+
 export const update = mutation({
   args: {
     id: v.id("documents"),
@@ -289,6 +311,26 @@ export const update = mutation({
 
     if (existingDocument.userId !== userId) {
       throw new Error("Unauthorized");
+    }
+
+    // Create a version snapshot before updating
+    if (rest.title !== undefined || rest.content !== undefined) {
+      const latestVersion = await context.db
+        .query("document_versions")
+        .withIndex("by_document", (q) => q.eq("documentId", id))
+        .order("desc")
+        .first();
+
+      const versionNumber = (latestVersion?.versionNumber || 0) + 1;
+
+      await context.db.insert("document_versions", {
+        documentId: id,
+        title: existingDocument.title,
+        content: existingDocument.content,
+        userId,
+        createdAt: Date.now(),
+        versionNumber,
+      });
     }
 
     const document = await context.db.patch(id, {
@@ -369,5 +411,79 @@ export const toggleStarred = mutation({
     const newStarred = !doc.starred;
     await context.db.patch(args.id, { starred: newStarred });
     return { starred: newStarred };
+  },
+});
+
+export const getVersions = query({
+  args: { documentId: v.id("documents") },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
+    const document = await context.db.get(args.documentId);
+    if (!document || document.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const versions = await context.db
+      .query("document_versions")
+      .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
+      .order("desc")
+      .collect();
+
+    return versions;
+  },
+});
+
+export const restoreVersion = mutation({
+  args: {
+    documentId: v.id("documents"),
+    versionId: v.id("document_versions"),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
+    const document = await context.db.get(args.documentId);
+    if (!document || document.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const version = await context.db.get(args.versionId);
+    if (!version || version.documentId !== args.documentId) {
+      throw new Error("Version not found");
+    }
+
+    // Create a version snapshot of the current state before restoring
+    const latestVersion = await context.db
+      .query("document_versions")
+      .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
+      .order("desc")
+      .first();
+
+    const versionNumber = (latestVersion?.versionNumber || 0) + 1;
+
+    await context.db.insert("document_versions", {
+      documentId: args.documentId,
+      title: document.title,
+      content: document.content,
+      userId,
+      createdAt: Date.now(),
+      versionNumber,
+    });
+
+    // Restore the selected version
+    const restoredDocument = await context.db.patch(args.documentId, {
+      title: version.title,
+      content: version.content,
+    });
+
+    return restoredDocument;
   },
 });

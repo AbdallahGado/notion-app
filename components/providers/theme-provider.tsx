@@ -1,12 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { type ThemeProviderProps } from "next-themes/dist/types";
+import { ThemeProvider as CustomThemeProvider } from "../../app/_components/theme-provider";
+
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: "dark" | "light" | "system";
+  storageKey?: string;
+};
 
 export function ThemeProvider({
   children,
   ...props
 }: Readonly<ThemeProviderProps>) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  return <CustomThemeProvider {...props}>{children}</CustomThemeProvider>;
 }

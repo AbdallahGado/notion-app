@@ -1,6 +1,6 @@
+import "./globals.css";
 import { Toaster } from "sonner";
 import type { Metadata } from "next";
-import "./globals.css";
 import { ConvexClintProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -38,10 +38,7 @@ export default function RootLayout({
       <body className="overflow-x-hidden">
         <ConvexClintProvider>
           <ThemeProvider
-            attribute="class"
             defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
             storageKey="jotion-theme-1"
           >
             <Toaster position="bottom-center" />

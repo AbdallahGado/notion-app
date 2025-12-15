@@ -1,8 +1,9 @@
 "use client";
 
-import { LucideIcon, ChevronUp, ChevronDown } from "lucide-react";
+import { LucideIcon, ChevronRight } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import styles from "./item.module.css";
 
 interface ItemProps {
   id: Id<"documents">;
@@ -23,26 +24,31 @@ export const Item = ({
   level = 0,
   expanded,
 }: ItemProps) => {
-  const ChevronIcon = expanded ? ChevronUp : ChevronDown;
-
   return (
-    <div
+    <motion.div
       onClick={onClick}
       tabIndex={0}
       role="button"
       style={{ paddingLeft: level ? `${level * 12 + 12}px` : "9px" }}
-      className={cn(
-        "group min-h-[27px] text-sm py-1 pr-3 w-full hover:bg-slate-400/5 flex items-center text-muted-foreground font-medium",
-        active && "bg-slate-400/5 text-orange-400 font-bold"
-      )}
+      className={styles.itemContainer}
+      data-active={active}
+      whileHover={{ x: 2 }}
+      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
     >
       {!!id && (
-        <div>
-          <ChevronIcon className="h-[18px] mr-1 text-muted-foreground" />
-        </div>
+        <motion.div
+          className={styles.chevronContainer}
+          animate={{ rotate: expanded ? 90 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronRight className={styles.chevronIcon} />
+        </motion.div>
       )}
-      <Icon className="shrink-0 h-[18px] mr-1 text-muted-foreground" />
-      <span className="truncate">{label}</span>
-    </div>
+      <Icon className={styles.itemIcon} />
+      <span className={styles.itemLabel}>{label}</span>
+    </motion.div>
   );
 };

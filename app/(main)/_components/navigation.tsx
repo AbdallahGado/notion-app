@@ -3,20 +3,20 @@
 
 //! THE MANE PAGE
 
-import { ChevronsLeft, MenuIcon, PlusCircle } from "lucide-react";
+import { ChevronsLeft, MenuIcon, PlusCircle, Search as SearchIcon } from "lucide-react";
 import { ElementRef, useRef, useState, useEffect } from "react";
-import { useMediaQuery } from "usehooks-ts";
+
 import { useMutation, useQuery } from "convex/react";
 import { cn } from "@/lib/utils"; // Utility function for conditional class names
 import { api } from "@/convex/_generated/api"; // Ensure the correct path to your API
 import { usePathname } from "next/navigation";
 import { UserItem } from "./user-item"; // Adjust import paths as necessary
 import { toast } from "sonner";
+import { showErrorToast } from "@/components/ui/ErrorToast";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Folder,
   FileText,
-  ChevronDown,
   ChevronRight,
   Star,
   Pencil,
@@ -31,19 +31,35 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import { motion } from "framer-motion";
+import styles from "./tree.module.css";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NavigationProps {
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  isMobileMenuOpen?: boolean;
+  setIsMobileMenuOpen?: (open: boolean) => void;
 }
 
 export const Navigation = ({
   isCollapsed,
   setIsCollapsed,
+  isMobile = false,
+  isMobileMenuOpen = false,
+  setIsMobileMenuOpen,
 }: NavigationProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)"); // Check if the viewport is mobile size
   const isResizingRef = useRef(false); // Ref to track resizing state
   const pathname = usePathname();
   const create = useMutation(api.documents.create); // Mutation for creating documents
@@ -69,12 +85,9 @@ export const Navigation = ({
       navbarRef.current.style.setProperty("left", "0");
     } else {
       // reset width
-      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
-      navbarRef.current.style.setProperty(
-        "width",
-        isMobile ? "0" : "calc(100% - 240px)"
-      );
-      navbarRef.current.style.setProperty("left", isMobile ? "100%" : "240px");
+      sidebarRef.current.style.width = "240px";
+      navbarRef.current.style.setProperty("width", "calc(100% - 240px)");
+      navbarRef.current.style.setProperty("left", "240px");
     }
   }, [isMobile, pathname]);
 
@@ -118,12 +131,9 @@ export const Navigation = ({
       setIsCollapsed(false);
       setIsResetting(true);
 
-      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
-      navbarRef.current.style.setProperty(
-        "width",
-        isMobile ? "0" : "calc(100% - 240px)"
-      );
-      navbarRef.current.style.setProperty("left", isMobile ? "100%" : "240px");
+      sidebarRef.current.style.width = "240px";
+      navbarRef.current.style.setProperty("width", "calc(100% - 240px)");
+      navbarRef.current.style.setProperty("left", "240px");
 
       setTimeout(() => {
         setIsResetting(false);
@@ -146,22 +156,38 @@ export const Navigation = ({
   };
 
   // Handle document creation
-  const handleCreate = () => {
-    const promise = create({ title: "Untitled" });
-    toast.promise(promise, {
-      loading: "Creating a new note...",
-      success: "New note created",
-      error: "Failed to create a new note",
-    });
+  const handleCreate = async () => {
+    try {
+      await create({ title: "Untitled" });
+      toast.success("New note created");
+    } catch (error) {
+      console.error("Unexpected error during note creation:", error);
+      showErrorToast({
+        message: "Creation Failed",
+        description:
+          "An unexpected error occurred while creating the note. Please try again.",
+        onRetry: () => {
+          void handleCreate();
+        },
+      });
+    }
   };
 
-  const handleCreateFolder = () => {
-    const promise = create({ title: "Untitled Folder", isFolder: true });
-    toast.promise(promise, {
-      loading: "Creating folder...",
-      success: "New folder created",
-      error: "Failed to create folder",
-    });
+  const handleCreateFolder = async () => {
+    try {
+      await create({ title: "Untitled Folder", isFolder: true });
+      toast.success("New folder created");
+    } catch (error) {
+      console.error("Unexpected error during folder creation:", error);
+      showErrorToast({
+        message: "Folder Creation Failed",
+        description:
+          "An unexpected error occurred while creating the folder. Please try again.",
+        onRetry: () => {
+          void handleCreateFolder();
+        },
+      });
+    }
   };
   // Tree logic for sidebar
   type TreeNode = {
@@ -219,19 +245,22 @@ export const Navigation = ({
 
   async function handleMoveTo(docId: string, parentId: string | undefined) {
     try {
-      const promise = update({
+      await update({
         id: docId as Id<"documents">,
         parentDocument: parentId as Id<"documents">,
       });
-      toast.promise(promise, {
-        loading: "Moving note...",
-        success: "Note moved",
-        error: "Failed to move note",
-      });
-      await promise;
+      toast.success("Note moved");
       setMoveDropdown(null);
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (error) {
+      console.error("Unexpected error during move:", error);
+      showErrorToast({
+        message: "Move Failed",
+        description:
+          "An unexpected error occurred while moving the note. Please try again.",
+        onRetry: () => {
+          void handleMoveTo(docId, parentId);
+        },
+      });
     }
   }
 
@@ -243,19 +272,22 @@ export const Navigation = ({
   const handleRenameSave = async (id: string) => {
     if (!editValue.trim()) return;
     try {
-      const promise = update({
+      await update({
         id: id as Id<"documents">,
         title: editValue.trim(),
       });
-      toast.promise(promise, {
-        loading: "Renaming note...",
-        success: "Note renamed",
-        error: "Failed to rename note",
-      });
-      await promise;
+      toast.success("Note renamed");
       setEditingId(null);
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (error) {
+      console.error("Unexpected error during rename:", error);
+      showErrorToast({
+        message: "Rename Failed",
+        description:
+          "An unexpected error occurred while renaming the note. Please try again.",
+        onRetry: () => {
+          void handleRenameSave(id);
+        },
+      });
     }
   };
 
@@ -267,28 +299,43 @@ export const Navigation = ({
     )
       return;
     try {
-      const promise = remove({ id: id as Id<"documents"> });
-      toast.promise(promise, {
-        loading: "Deleting note...",
-        success: "Note deleted",
-        error: "Failed to delete note",
+      await remove({ id: id as Id<"documents"> });
+      toast.success("Note deleted");
+    } catch (error) {
+      console.error("Unexpected error during delete:", error);
+      showErrorToast({
+        message: "Delete Failed",
+        description:
+          "An unexpected error occurred while deleting the note. Please try again.",
+        onRetry: () => {
+          void handleDelete(id, title);
+        },
       });
-      await promise;
-    } catch {
-      toast.error("An unexpected error occurred.");
     }
   };
 
   function renderTree(nodes: TreeNode[], level = 0) {
     return (
-      <ul
-        className={
+      <motion.ul
+        className={cn(
+          "treeContainer",
           level === 0
             ? "pl-0"
-            : "pl-4 border-l border-gray-200 dark:border-gray-700"
-        }
+            : "pl-4 border-l border-white/30 dark:border-slate-600/40"
+        )}
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.03,
+            },
+          },
+        }}
       >
-        {nodes.map((doc: TreeNode) => {
+        {nodes.map((doc: TreeNode, index) => {
           const hasChildren = (doc.children ?? []).length > 0;
           // Collect descendants to prevent moving into them
           const descendants = new Set<string>();
@@ -300,33 +347,54 @@ export const Navigation = ({
             descendants
           );
           return (
-            <li key={doc._id} className="py-1">
-              <div
-                className={`flex items-center gap-2 group rounded-lg px-2 py-1 hover:bg-indigo-50 dark:hover:bg-indigo-900 transition cursor-pointer ${pathname.includes(doc._id) ? "bg-indigo-100 dark:bg-indigo-800" : ""}`}
+            <motion.li
+              key={doc._id}
+              className={styles.treeNode}
+              variants={{
+                hidden: { opacity: 0, x: -20 },
+                visible: { opacity: 1, x: 0 },
+              }}
+              transition={{ duration: 0.3, delay: index * 0.02 }}
+            >
+              <motion.div
+                className={cn(
+                  styles.treeNodeContent,
+                  pathname.includes(doc._id) && styles.active
+                )}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {hasChildren ? (
                   <button
                     type="button"
                     onClick={() => toggleExpand(doc._id)}
                     aria-pressed={!!expanded[doc._id]}
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className={styles.expandButton}
                     aria-label={
                       expanded[doc._id] ? "Collapse folder" : "Expand folder"
                     }
                   >
-                    {expanded[doc._id] ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
+                    <motion.span
+                      className={styles.expandIcon}
+                      animate={{ rotate: expanded[doc._id] ? 90 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
                       <ChevronRight className="h-4 w-4" />
-                    )}
+                    </motion.span>
                   </button>
                 ) : (
                   <span className="w-5" />
                 )}
                 {doc.isFolder ? (
-                  <Folder className="h-5 w-5 text-yellow-500" />
+                  <Folder
+                    className={cn(styles.nodeIcon, "h-5 w-5")}
+                    data-type="folder"
+                  />
                 ) : (
-                  <FileText className="h-5 w-5 text-indigo-400 dark:text-indigo-300 flex-shrink-0" />
+                  <FileText
+                    className={cn(styles.nodeIcon, "h-5 w-5")}
+                    data-type="file"
+                  />
                 )}
                 {editingId === doc._id ? (
                   <input
@@ -350,7 +418,7 @@ export const Navigation = ({
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                     <Link
                       href={`/documents/${doc._id}`}
-                      className="truncate flex-1 text-base font-medium text-indigo-700 dark:text-indigo-200 group-hover:underline transition-transform duration-100 hover:scale-[1.03] focus:scale-[1.03]"
+                      className={styles.nodeTitle}
                       tabIndex={0}
                       aria-label={`Open ${doc.title || "Untitled"}`}
                     >
@@ -378,17 +446,34 @@ export const Navigation = ({
                       <MoreVertical className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 transition" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setMoveDropdown(
-                          moveDropdown === doc._id ? null : doc._id
-                        )
-                      }
-                    >
-                      <ChevronRight className="h-4 w-4 mr-2 text-indigo-400 rotate-90" />{" "}
-                      Move to
-                    </DropdownMenuItem>
+                  <DropdownMenuContent align="end" className="w-48 font-medium">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                         <ChevronRight className="h-4 w-4 text-slate-400" />
+                         Move to
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-48 max-h-60 overflow-y-auto" sideOffset={8} alignOffset={-5}>
+                        <DropdownMenuItem onClick={() => handleMoveTo(doc._id, undefined)}>
+                           <div className="flex items-center gap-2">
+                             <FileText className="h-3 w-3 text-slate-400" />
+                             <span className="truncate max-w-[140px]">(No parent)</span>
+                           </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {allFolders.length === 0 && (
+                           <div className="px-2 py-1.5 text-xs text-slate-400 text-center">No folders available</div>
+                        )}
+                        {allFolders.map((folder) => (
+                           <DropdownMenuItem key={folder._id} onClick={() => handleMoveTo(doc._id, folder._id)}>
+                              <div className="flex items-center gap-2">
+                                <Folder className="h-3 w-3 text-emerald-500" />
+                                <span className="truncate max-w-[140px]">{folder.title || "Untitled"}</span>
+                              </div>
+                           </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => handleRename(doc._id, doc.title)}
                     >
@@ -408,63 +493,35 @@ export const Navigation = ({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => handleDelete(doc._id, doc.title)}
-                      className="text-red-600"
+                      className="text-red-600 group/delete"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      <Trash2 className="h-4 w-4 mr-2 group-hover/delete:animate-bounce" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                {/* Move to dropdown (outside for positioning) */}
-                <div className="relative">
-                  {moveDropdown === doc._id && (
-                    <div className="move-to-dropdown absolute right-0 z-20 mt-2 w-40 bg-white dark:bg-[#23233a] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Move to folder:
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setMoveDropdown(null)}
-                          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                          aria-label="Close move to"
-                        >
-                          <X className="h-4 w-4 text-gray-400" />
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        className="w-full text-left px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800 text-sm"
-                        onClick={() => handleMoveTo(doc._id, undefined)}
-                      >
-                        (No parent)
-                      </button>
-                      {allFolders.map((folder) => (
-                        <button
-                          key={folder._id}
-                          type="button"
-                          className="w-full text-left px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800 text-sm"
-                          onClick={() => handleMoveTo(doc._id, folder._id)}
-                        >
-                          {folder.title || "Untitled"}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+                {/* Manual Move to dropdown removed */}
+              </motion.div>
               {/* close item container above before rendering nested lists */}
               {hasChildren && expanded[doc._id] && (
-                <div>{renderTree(doc.children ?? [], level + 1)}</div>
+                <motion.div
+                  className={styles.childrenContainer}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {renderTree(doc.children ?? [], level + 1)}
+                </motion.div>
               )}
               {doc.isFolder && expanded[doc._id] && !hasChildren && (
                 <div className="pl-8 py-2 text-xs text-gray-400 dark:text-gray-500">
                   No notes in this folder
                 </div>
               )}
-            </li>
+            </motion.li>
           );
         })}
-      </ul>
+      </motion.ul>
     );
   }
 
@@ -478,52 +535,114 @@ export const Navigation = ({
       <aside
         ref={sidebarRef}
         className={cn(
-          `group/sidebar h-screen bg-white/80 dark:bg-[#23233a]/80 shadow-2xl rounded-r-2xl overflow-y-auto relative flex flex-col w-64 z-[99999] border-r border-gray-200 dark:border-gray-800 transition-all`,
-          isResetting && "transition-all ease-in-out duration-300",
+          `group/sidebar h-screen glass-card rounded-r-3xl overflow-y-auto relative flex flex-col w-64 z-[99999] transition-all duration-500 ease-in-out shadow-2xl backdrop-blur-xl bg-white/50 dark:bg-[#1F1F1F]/60 border-r border-black/5 dark:border-white/5`,
+          isResetting && "transition-all ease-in-out duration-500",
           isMobile && "w-0"
         )}
       >
         {/* Logo/App Name and Search */}
-        <div className="flex flex-col gap-2 px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-          <span className="text-2xl font-extrabold text-indigo-600 tracking-tight">
-            Jotion
-          </span>
-          <input
-            type="text"
-            placeholder="Search notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full mt-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#23233a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
-          />
+        <div className="flex flex-col gap-3 px-4 py-6">
+          <motion.div
+            className="flex items-center gap-2 pl-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+             <div className="h-6 w-6 rounded-md bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-indigo-500/20 shadow-lg">
+                J
+             </div>
+             <span className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">
+                Jotion
+             </span>
+          </motion.div>
+
+          <motion.div
+             className="relative pt-2"
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: 0.1 }}
+          >
+             <SearchIcon className="absolute left-3 top-1/2 -translate-y-[calc(50%-4px)] h-4 w-4 text-slate-400" />
+             <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearch(e.target.value)
+                }
+                className="w-full pl-9 pr-4 py-2 h-9 rounded-lg border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium"
+             />
+          </motion.div>
         </div>
-        <button
-          type="button"
-          onClick={collapse}
-          className={cn(
-            "h-6 w-6 text-muted-foreground cursor-pointer rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-900 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition duration-300",
-            isMobile && "opacity-100"
-          )}
-        >
-          <ChevronsLeft className="h-6 w-6" />
-        </button>
-        <div className="px-6 pt-4 pb-2">
+
+        {/* Mobile Close Button */}
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen?.(false)}
+            className="absolute top-4 right-4 z-10 p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+            aria-label="Close navigation menu"
+          >
+            <X className="h-4 w-4 text-slate-500" />
+          </button>
+        )}
+
+        {/* Desktop Collapse Button */}
+        {!isMobile && (
+          <button
+            type="button"
+            onClick={collapse}
+            className={cn(
+              "h-6 w-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-sm hover:bg-black/5 dark:hover:bg-white/5 absolute top-3 right-3 opacity-0 group-hover/sidebar:opacity-100 transition-all duration-300"
+            )}
+            aria-label="Collapse sidebar"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </button>
+        )}
+        <div className="px-4 pt-4 pb-2 flex flex-col gap-2">
           {/* Remove UserItem from here, move to bottom */}
-          <button
-            type="button"
-            onClick={handleCreate}
-            className="w-full mt-4 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-full shadow transition"
-          >
-            <PlusCircle className="h-5 w-5" />
-            New Page
-          </button>
-          <button
-            type="button"
-            onClick={handleCreateFolder}
-            className="w-full mt-2 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-2 px-4 rounded-full shadow transition"
-          >
-            <Folder className="h-5 w-5" />
-            New Folder
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  type="button"
+                  onClick={handleCreate}
+                  className="group w-full flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white py-2 px-3 rounded-lg hover:bg-gray-100/50 dark:hover:bg-slate-800/50 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
+                    <PlusCircle className="h-4 w-4" />
+                  </div>
+                  <span>New Page</span>
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Create a new document</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  type="button"
+                  onClick={handleCreateFolder}
+                  className="group w-full flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white py-2 px-3 rounded-lg hover:bg-gray-100/50 dark:hover:bg-slate-800/50 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="p-1 rounded-md bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/50 transition-colors">
+                    <Folder className="h-4 w-4" />
+                  </div>
+                  <span>New Folder</span>
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Create a new folder</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="flex-1 px-2 pt-2 pb-6">
           {filteredDocs.length === 0 ? (
@@ -535,28 +654,48 @@ export const Navigation = ({
           )}
         </div>
         {/* Theme toggle at the bottom above user info */}
-        <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#23233a]/80 sticky bottom-0 z-10 flex flex-col gap-4">
+        <div className="px-4 py-4 border-t border-white/40 dark:border-slate-700/50 bg-gradient-to-t from-white/30 via-white/20 to-white/10 dark:from-slate-900/40 dark:via-slate-900/30 dark:to-slate-900/20 backdrop-blur-lg sticky bottom-0 z-10 flex flex-col gap-4 shadow-inner">
           <ModeToggle />
           <UserItem />
         </div>
       </aside>
-      <div
-        ref={navbarRef}
-        className={cn(
-          "absolute top-0 left-64 z-[99999]",
-          isMobile && "left-0 w-full"
-        )}
-      >
-        <nav className="bg-transparent w-full">
-          {isCollapsed && (
-            <MenuIcon
-              onClick={resetWidth}
-              role="button"
-              className="h-6 w-6 text-muted-foreground"
-            />
+      {/* Mobile Menu Button */}
+      {isMobile && isCollapsed && (
+        <div className="fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsMobileMenuOpen?.(true)}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 dark:bg-slate-800/50 dark:hover:bg-slate-700/50 backdrop-blur-sm transition-colors"
+            aria-label="Open navigation menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            <MenuIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          </button>
+        </div>
+      )}
+
+      {/* Desktop Menu Button */}
+      {!isMobile && (
+        <div
+          ref={navbarRef}
+          className={cn(
+            "fixed top-0 left-64 z-[99999] transition-all duration-300 ease-in-out",
+            isCollapsed && "left-0"
           )}
-        </nav>
-      </div>
+          style={{ width: isCollapsed ? "100%" : "calc(100% - 240px)" }}
+        >
+          <nav className="bg-transparent w-full">
+            {isCollapsed && (
+              <button
+                onClick={resetWidth}
+                className="p-2 m-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Expand sidebar"
+              >
+                <MenuIcon className="h-6 w-6 text-muted-foreground" />
+              </button>
+            )}
+          </nav>
+        </div>
+      )}
       {/* Resize handle: absolutely positioned, full height, always on top */}
       {!isMobile && !isCollapsed && (
         <div
@@ -564,11 +703,14 @@ export const Navigation = ({
           tabIndex={0}
           onMouseDown={handleMouseDown}
           onClick={resetWidth}
-          className="fixed top-0 left-64 h-screen w-3 z-50 cursor-ew-resize bg-transparent hover:bg-indigo-200/30 focus:bg-indigo-200/40 transition-opacity duration-200 outline-none"
+          className="fixed top-0 left-64 h-screen w-1 z-50 cursor-ew-resize bg-transparent hover:bg-indigo-500/50 active:bg-indigo-500/80 transition-all duration-200 group-hover/sidebar:w-1.5"
           style={{ userSelect: "none" }}
           aria-label="Resize sidebar"
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") resetWidth();
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              resetWidth();
+            }
           }}
         />
       )}

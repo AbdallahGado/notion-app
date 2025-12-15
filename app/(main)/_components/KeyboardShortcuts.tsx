@@ -265,7 +265,7 @@ export default function KeyboardShortcuts({
     (e: KeyboardEvent): void => {
       if (handleGlobalShortcut(e)) return;
       if (handleModalKeyboard(e)) return;
-      handleKeyComboFeedback(e);
+      // handleKeyComboFeedback(e); // Disabled per user request (unwanted toast on keypress)
     },
     [handleGlobalShortcut, handleModalKeyboard, handleKeyComboFeedback]
   );

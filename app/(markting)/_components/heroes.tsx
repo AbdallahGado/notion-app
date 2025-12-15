@@ -68,8 +68,8 @@ function Heroes() {
           />
         </div>
         {/* Product Screenshot Mockup Frame */}
-        <div className="relative w-[320px] h-[220px] sm:w-[400px] sm:h-[260px] md:w-[480px] md:h-[320px] bg-white/80 dark:bg-[#23233a]/80 rounded-2xl shadow-2xl border border-indigo-100 dark:border-[#23233a] overflow-hidden transform hover:scale-105 transition-transform duration-300 animate-float">
-          <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 opacity-30 z-10" />
+        <div className="relative w-[320px] h-[220px] sm:w-[400px] sm:h-[260px] md:w-[480px] md:h-[320px] glass-card overflow-hidden transform hover:scale-105 transition-all duration-300 animate-float">
+          <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-modern-primary-400 via-modern-primary-500 to-modern-accent-400 opacity-40 z-10 rounded-t-2xl" />
           <Image
             src="/documents.png"
             alt="Documents"
@@ -88,7 +88,7 @@ function Heroes() {
           />
         </div>
         {/* Secondary visual for larger screens */}
-        <div className="relative w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] md:w-[320px] md:h-[320px] bg-white/70 dark:bg-[#18181B]/70 rounded-2xl shadow-xl border border-indigo-100 dark:border-[#23233a] overflow-hidden hidden md:block animate-float-slow">
+        <div className="relative w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] md:w-[320px] md:h-[320px] glass-card overflow-hidden hidden md:block animate-float-slow hover:scale-105 transition-all duration-300">
           <Image
             src="/reading.png"
             alt="Ideas"
@@ -105,23 +105,6 @@ function Heroes() {
           />
         </div>
       </div>
-      {/* Floating animation keyframes */}
-      <style jsx>{`
-        .animate-float {
-          animation: float 3s ease-in-out infinite alternate;
-        }
-        .animate-float-slow {
-          animation: float 5s ease-in-out infinite alternate;
-        }
-        @keyframes float {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(-16px);
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -6,6 +6,7 @@ export type ReplyType = {
   userId?: string;
   userName?: string | null;
   userAvatar?: string | null;
+  createdAt?: number;
 };
 
 export type CommentType = {
@@ -18,4 +19,5 @@ export type CommentType = {
   userId?: string;
   userName?: string | null;
   userAvatar?: string | null;
+  createdAt?: number;
 };

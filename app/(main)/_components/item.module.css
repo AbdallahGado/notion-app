@@ -1,0 +1,120 @@
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.itemContainer {
+  position: relative;
+  min-height: 36px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease-out;
+}
+
+.itemContainer:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+}
+
+.itemContainer:hover {
+  background-color: rgba(99, 102, 241, 0.08);
+  transform: translateX(2px);
+}
+
+.dark .itemContainer:hover {
+  background-color: rgba(99, 102, 241, 0.15);
+}
+
+.itemContainer:active {
+  transform: scale(0.98);
+}
+
+.itemContainer[data-active="true"] {
+  background-color: rgba(99, 102, 241, 0.12);
+  color: #000000;
+  font-weight: 600;
+}
+
+.dark .itemContainer[data-active="true"] {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: inherit;
+}
+
+.chevronContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.chevronContainer:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.chevronIcon {
+  height: 16px;
+  width: 16px;
+  transition: transform 0.2s ease;
+  color: #6b7280;
+}
+
+.itemContainer:hover .chevronIcon {
+  color: #000000;
+}
+
+.dark .itemContainer:hover .chevronIcon {
+  color: #c7d2fe;
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  height: 18px;
+  width: 18px;
+  margin-right: 8px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.itemContainer:hover .itemIcon {
+  color: #000000;
+  transform: scale(1.1);
+}
+
+.dark .itemContainer:hover .itemIcon {
+  color: #c7d2fe;
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.itemContainer:hover .itemLabel {
+  color: #000000;
+}
+
+.dark .itemContainer:hover .itemLabel {
+  color: #c7d2fe;
+}

@@ -1,0 +1,144 @@
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.treeContainer {
+  transition: all 0.2s ease-in-out;
+}
+
+.treeNode {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.treeNode:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.treeNodeContent {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  gap: 6px;
+}
+
+.treeNodeContent:hover {
+  transform: translateX(2px);
+}
+
+.treeNodeContent:active {
+  transform: scale(0.98);
+}
+
+.childrenContainer {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+.childrenContainer[data-closing="true"] {
+  animation: slideUp 0.2s ease-out forwards;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.expandButton:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.expandIcon {
+  transition: transform 0.2s ease;
+}
+
+.expandIcon[data-expanded="true"] {
+  transform: rotate(90deg);
+}
+
+.nodeIcon {
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.nodeIcon[data-type="folder"] {
+  color: #facc15;
+}
+
+.nodeIcon[data-type="file"] {
+  color: #818cf8;
+}
+
+.nodeTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: #000000;
+}
+
+.dark .nodeTitle {
+  color: #c7d2fe;
+}
+
+.nodeTitle:hover {
+  color: #4338ca;
+}
+
+.dark .nodeTitle:hover {
+  color: #a5b4fc;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.treeNodeContent:hover .actionButtons {
+  opacity: 1;
+}
+
+.actionButton {
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.actionButton:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #000000;
+  transform: scale(1.1);
+}
+
+.actionButton[data-starred="true"] {
+  color: #facc15;
+}

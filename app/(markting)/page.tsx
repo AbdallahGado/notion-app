@@ -92,6 +92,7 @@ function ScrollToTopButton() {
 // Simple fade-in on scroll hook
 function useFadeInOnScroll() {
   const ref = useRef(null);
+
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const node = ref.current;
@@ -141,7 +142,7 @@ const MarketingPage = () => {
   const [faqRef, faqVisible] = useFadeInOnScroll();
 
   return (
-    <div className="flex flex-col min-h-full bg-gradient-to-br from-white to-indigo-50 dark:from-[#18181B] dark:to-[#23233a] relative">
+    <div className="flex flex-col min-h-full bg-gradient-to-br from-white to-indigo-50 dark:from-[#18181B] dark:to-[#23233a] relative modern-bg-pattern">
       {/* Animated SVG background shapes for hero section */}
       <div className="absolute top-0 left-0 w-full h-[500px] pointer-events-none z-0 overflow-hidden">
         <svg
@@ -209,7 +210,7 @@ const MarketingPage = () => {
       <section
         id="main-content"
         ref={heroRef}
-        className={`relative w-full flex flex-col items-center justify-center gap-10 px-6 pt-24 pb-16 max-w-7xl mx-auto transition-opacity duration-1000 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        className={`relative w-full flex flex-col items-center justify-center gap-10 px-6 pt-24 pb-16 max-w-7xl mx-auto transition-all duration-1000 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       >
         {/* Subtle SVG background pattern */}
         <svg
@@ -237,7 +238,7 @@ const MarketingPage = () => {
         {/* Hero Text */}
         <div className="flex flex-col items-center justify-center text-center z-10">
           <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 leading-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-400 bg-clip-text text-transparent"></h1>
-          <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 leading-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 leading-tight text-gradient-modern">
             Unify Your Work.
           </h1>
           <p className="text-lg sm:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-xl">
@@ -245,11 +246,11 @@ const MarketingPage = () => {
             collaborative workspace.
           </p>
           <button
-            className="mb-8 px-8 py-3 rounded-full font-semibold shadow-lg text-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none relative overflow-hidden group bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-400 animate-gradient-move"
+            className="mb-8 px-10 py-4 rounded-2xl font-bold text-lg focus-modern relative overflow-hidden group bg-gradient-to-r from-modern-primary-500 via-modern-primary-600 to-modern-accent-500 hover:from-modern-primary-600 hover:via-modern-primary-700 hover:to-modern-accent-600 text-white shadow-modern-glow hover:shadow-modern-glow-strong hover:scale-105 active:scale-95 transition-all duration-300 animate-shimmer"
             aria-label="Get Started Free with Jotion"
             onClick={() => router.push("/documents")}
           >
-            Get Started Free
+            <span className="relative z-10">Get Started Free</span>
           </button>
         </div>
         {/* Hero Visual */}
@@ -321,7 +322,7 @@ const MarketingPage = () => {
       {/* Features Section with fade-in */}
       <section
         ref={featuresRef}
-        className={`py-20 px-4 bg-white dark:bg-[#18181B] transition-colors duration-500 transition-opacity duration-1000 ${featuresVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        className={`py-20 px-4 bg-white dark:bg-[#18181B] transition-all duration-1000 ${featuresVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       >
         <h2 className="text-3xl md:text-4xl font-bold text-left mb-12 text-gray-900 dark:text-white max-w-6xl mx-auto">
           Features
@@ -330,7 +331,7 @@ const MarketingPage = () => {
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="flex-1 flex flex-row md:flex-col items-center md:items-start bg-white/70 dark:bg-[#23233a]/70 rounded-xl shadow-2xl backdrop-blur-md p-6 md:p-8 border border-gray-100 dark:border-[#23233a] min-w-[220px] max-w-full md:max-w-xs mb-4 md:mb-0 transform transition-transform duration-300 hover:scale-105 hover:shadow-indigo-200 hover:z-10 animate-float"
+              className="flex-1 flex flex-row md:flex-col items-center md:items-start glass-card card-hover-lift min-w-[220px] max-w-full md:max-w-xs mb-4 md:mb-0 animate-float"
             >
               <div className="flex-shrink-0 mr-4 md:mr-0 md:mb-4">
                 {feature.icon}
@@ -350,7 +351,7 @@ const MarketingPage = () => {
       {/* Trusted by Section with fade-in */}
       <section
         ref={testimonialsRef}
-        className={`py-8 px-4 bg-white dark:bg-[#18181B] transition-opacity duration-1000 ${testimonialsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        className={`py-8 px-4 bg-white dark:bg-[#18181B] transition-all duration-1000 ${testimonialsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       >
         <div className="max-w-6xl mx-auto flex flex-col items-center">
           <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider">
@@ -406,7 +407,7 @@ const MarketingPage = () => {
       {/* Testimonials Section with fade-in */}
       <section
         ref={testimonialsRef}
-        className={`py-20 px-4 bg-gray-50 dark:bg-[#23233a] transition-colors duration-500 transition-opacity duration-1000 ${testimonialsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        className={`py-20 px-4 bg-gray-50 dark:bg-[#23233a] transition-all duration-1000 ${testimonialsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       >
         <h2 className="text-3xl md:text-4xl font-bold text-left mb-12 text-gray-900 dark:text-white max-w-4xl mx-auto">
           What Our Users Say
@@ -458,7 +459,7 @@ const MarketingPage = () => {
       {/* FAQ Section with fade-in */}
       <section
         ref={faqRef}
-        className={`py-20 px-4 bg-white dark:bg-[#18181B] transition-colors duration-500 transition-opacity duration-1000 ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        className={`py-20 px-4 bg-white dark:bg-[#18181B] transition-all duration-1000 ${faqVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       >
         <div className="max-w-2xl mx-auto bg-white dark:bg-[#23233a] rounded-xl shadow-lg p-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-8 text-gray-900 dark:text-white text-center">
@@ -587,73 +588,6 @@ const MarketingPage = () => {
       <ScrollToTopButton />
       {/* Landmark role for main content */}
       <div role="main" aria-label="Jotion marketing main content" />
-      {/* Animations */}
-      <style jsx global>{`
-        @keyframes gradient-x {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 4s ease-in-out infinite;
-        }
-        @keyframes pop {
-          0% {
-            transform: scale(0.95);
-          }
-          60% {
-            transform: scale(1.05);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        .animate-pop {
-          animation: pop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-        @keyframes wiggle {
-          0%,
-          100% {
-            transform: rotate(-8deg);
-          }
-          50% {
-            transform: rotate(8deg);
-          }
-        }
-        .group-hover\:animate-wiggle:hover {
-          animation: wiggle 0.5s;
-        }
-        @keyframes blink {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0;
-          }
-        }
-        .animate-blink {
-          animation: blink 1s steps(2, start) infinite;
-        }
-      `}</style>
     </div>
   );
 };

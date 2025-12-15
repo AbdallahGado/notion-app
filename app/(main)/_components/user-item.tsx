@@ -77,3 +77,6 @@ export const UserItem = () => {
     </DropdownMenu>
   );
 };
+
+// Improve DevTools and satisfy lint rules
+UserItem.displayName = "UserItem";

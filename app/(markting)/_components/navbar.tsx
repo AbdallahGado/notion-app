@@ -15,9 +15,9 @@ export const Navbar = () => {
   return (
     <nav
       className={cn(
-        `z-50 fixed top-0 flex items-center w-full p-6 transition-all duration-300 backdrop-blur-xl bg-white/60 dark:bg-[#1F1F1F]/60 border-b border-transparent`,
-        scrolled && "border-b shadow-lg bg-white/80 dark:bg-[#23233a]/80",
-        "glass-navbar"
+        `z-50 fixed top-0 flex items-center w-full p-6 transition-all duration-300 glass`,
+        scrolled && "shadow-modern-strong",
+        "hover:shadow-modern-medium"
       )}
       aria-label="Main navigation"
     >
