@@ -1,8 +1,14 @@
 import { Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
-import { ReactRenderer } from "@tiptap/react";
-import tippy from "tippy.js";
-import { SlashCommand, commands } from "./SlashCommand"; // Import the UI component
+import { ReactRenderer, Editor } from "@tiptap/react";
+import tippy, { Instance } from "tippy.js";
+import { SlashCommand, commands, CommandItem } from "./SlashCommand"; // Import the UI component
+
+interface CommandProps {
+  editor: Editor; // Editor instance from TipTap
+  range: { from: number; to: number }; // Range object
+  props: Record<string, unknown>;
+}
 
 export const SlashCommandExtension = Extension.create({
   name: "slashCommand",
@@ -11,8 +17,8 @@ export const SlashCommandExtension = Extension.create({
     return {
       suggestion: {
         char: "/",
-        command: ({ editor, range, props }: any) => {
-          props.command(editor, range);
+        command: ({ editor, range, props }: CommandProps) => {
+          (props.command as (editor: Editor, range: { from: number; to: number }) => void)(editor, range);
         },
       },
     };
@@ -28,6 +34,21 @@ export const SlashCommandExtension = Extension.create({
   },
 });
 
+interface OnStartProps {
+  editor: Editor;
+  clientRect: () => DOMRect;
+  items: CommandItem[];
+  command: (item: CommandItem) => void;
+}
+
+interface OnUpdateProps {
+  clientRect: () => DOMRect;
+}
+
+interface OnKeyDownProps {
+  event: KeyboardEvent;
+}
+
 export const suggestion = {
   items: ({ query }: { query: string }) => {
     return commands
@@ -39,15 +60,18 @@ export const suggestion = {
 
   render: () => {
     let component: ReactRenderer;
-    let popup: any;
+    let popup: Instance[];
 
     return {
-      onStart: (props: any) => {
+      onStart: (props: OnStartProps) => {
         component = new ReactRenderer(SlashCommand, {
-          props,
           editor: props.editor,
+          props: {
+            items: props.items,
+            command: props.command,
+            selectedIndex: 0,
+          },
         });
-
         if (!props.clientRect) {
           return;
         }
@@ -63,7 +87,7 @@ export const suggestion = {
         });
       },
 
-      onUpdate(props: any) {
+      onUpdate(props: OnUpdateProps) {
         component.updateProps(props);
 
         if (!props.clientRect) {
@@ -75,13 +99,13 @@ export const suggestion = {
         });
       },
 
-      onKeyDown(props: any) {
+      onKeyDown(props: OnKeyDownProps) {
         if (props.event.key === "Escape") {
           popup[0].hide();
           return true;
         }
 
-        return (component.ref as any)?.onKeyDown(props);
+        return (component.ref as { onKeyDown?: (props: OnKeyDownProps) => boolean })?.onKeyDown?.(props);
       },
 
       onExit() {

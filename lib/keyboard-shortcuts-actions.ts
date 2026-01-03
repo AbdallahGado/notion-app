@@ -33,7 +33,6 @@ class ShortcutsRegistry {
     const shortcut = this.shortcuts.get(id);
     if (shortcut) {
       // For now, just log. In a real implementation, you'd dispatch events or call handlers
-      console.log(`Executing shortcut: ${shortcut.description}`);
     }
   }
 

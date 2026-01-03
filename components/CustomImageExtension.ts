@@ -6,8 +6,14 @@ export const CustomImageExtension = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
+      storageId: {
+        default: null,
+        renderHTML: (attributes) => ({
+          "data-storage-id": attributes.storageId,
+        }),
+      },
       width: {
-        default: "100%",
+        default: "300px",
         renderHTML: (attributes) => ({
           width: attributes.width,
         }),
@@ -18,9 +24,21 @@ export const CustomImageExtension = Image.extend({
           height: attributes.height,
         }),
       },
+      left: {
+        default: "0px",
+        renderHTML: (attributes) => ({
+          style: `left: ${attributes.left};`,
+        }),
+      },
+      top: {
+        default: "0px",
+        renderHTML: (attributes) => ({
+          style: `top: ${attributes.top};`,
+        }),
+      },
     };
   },
-  
+
   addNodeView() {
     return ReactNodeViewRenderer(ImageResizer);
   },

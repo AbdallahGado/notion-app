@@ -612,42 +612,9 @@ export default React.memo(function FloatingToolbar({
             transform: "translate(-50%, 0)",
             zIndex: 99999, // Ensure it's on top of everything including fixed headers
           }}
-          className="bg-white/95 dark:bg-[#23233a]/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-2xl flex gap-1 px-3 py-2 glass-card"
+          className="bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] flex gap-1 px-2 py-1.5 ring-1 ring-black/5 dark:ring-white/5"
         >
-          {/* Arrow indicator */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 ${coords.placement === "top" ? "bottom-0" : "top-0"} z-10 pointer-events-none`}
-            style={{
-              marginBottom: coords.placement === "top" ? -8 : undefined,
-              marginTop: coords.placement === "bottom" ? -8 : undefined,
-            }}
-          >
-            <svg
-              width="18"
-              height="8"
-              viewBox="0 0 18 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d={
-                  coords.placement === "top"
-                    ? "M1 8L9 0L17 8H1Z"
-                    : "M1 0L9 8L17 0H1Z"
-                }
-                fill="currentColor"
-                className="text-white dark:text-[#23233a]"
-              />
-              <path
-                d={
-                  coords.placement === "top" ? "M1 8L9 1L17 8" : "M1 0L9 7L17 0"
-                }
-                stroke="#e5e7eb"
-                strokeWidth="1"
-                className="dark:stroke-gray-700"
-              />
-            </svg>
-          </div>
+          {/* Arrow indicator removed for cleaner floating aesthetic */}
           {/* Formatting actions */}
           <Tooltip>
             <TooltipTrigger asChild>

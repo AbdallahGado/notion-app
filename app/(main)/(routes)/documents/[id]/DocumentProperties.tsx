@@ -14,7 +14,6 @@ import {
   Type,
   AlignLeft,
   Clock,
-  Sparkles,
 } from "lucide-react";
 
 interface DocumentPropertiesProps {

@@ -5,17 +5,13 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -30,12 +26,11 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
-import { PlusCircle, Folder, Star } from "lucide-react";
+import { PlusCircle, Folder, Star, Search as SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { showErrorToast } from "@/components/ui/ErrorToast";
 import SortableItem from "../../_components/SortableItem";
-import { showKeyboardShortcuts } from "../../_components/KeyboardShortcuts";
 
 /* -------------------------------------------------------------------------- */
 /* Utils                                                                      */
@@ -113,8 +108,6 @@ const StarredSidebar = memo(function StarredSidebar({
 /* -------------------------------------------------------------------------- */
 
 const DocumentsPage = memo(function DocumentsPage() {
-  const { user } = useUser();
-
   const create = useMutation(api.documents.create);
   const update = useMutation(api.documents.update);
   const remove = useMutation(api.documents.remove);
@@ -129,10 +122,6 @@ const DocumentsPage = memo(function DocumentsPage() {
   const [filterBy, setFilterBy] = useState<
     "all" | "starred" | "folders" | "notes"
   >("all");
-
-  const [sortBy, setSortBy] = useState<
-    "updatedAt" | "createdAt" | "title"
-  >("updatedAt");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -259,7 +248,7 @@ const DocumentsPage = memo(function DocumentsPage() {
       const overNode = treeData.map.get(over.id as string);
       if (!activeNode || !overNode) return;
 
-      let newParent = overNode.isFolder
+      const newParent = overNode.isFolder
         ? overNode._id
         : overNode.parentDocument;
 
@@ -284,87 +273,107 @@ const DocumentsPage = memo(function DocumentsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="h-full flex flex-col bg-slate-50 dark:bg-[#111] transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/70 dark:bg-slate-900/70 backdrop-blur border-b p-6">
-        <div className="flex flex-wrap gap-4 items-center justify-between">
-          <h2 className="text-2xl font-bold">Your Notes</h2>
-          <div className="flex gap-2">
-            <Button onClick={onCreate} className="rounded-full">
-              <PlusCircle className="h-4 w-4 mr-2" /> New Note
-            </Button>
-            <Button onClick={onCreateFolder} variant="outline">
-              <Folder className="h-4 w-4 mr-2" /> Folder
-            </Button>
-          </div>
-        </div>
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#111]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 p-6">
+        <div className="max-w-4xl mx-auto w-full">
+            <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+            <div>
+                <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Documents</h2>
+                <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Manage and organize your knowledge.</p>
+            </div>
+            <div className="flex gap-2">
+                <Button onClick={onCreate} className="rounded-xl shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white border-0">
+                <PlusCircle className="h-4 w-4 mr-2" /> New Note
+                </Button>
+                <Button onClick={onCreateFolder} variant="outline" className="rounded-xl border-slate-200 dark:border-slate-800">
+                <Folder className="h-4 w-4 mr-2" /> Folder
+                </Button>
+            </div>
+            </div>
 
-        <div className="mt-4 flex gap-2 flex-wrap">
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search…"
-            className="flex-1 px-4 py-2 rounded-lg border"
-          />
-          <select
-            value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value as any)}
-            className="px-3 py-2 rounded-lg border"
-          >
-            <option value="all">All</option>
-            <option value="starred">Starred</option>
-            <option value="folders">Folders</option>
-            <option value="notes">Notes</option>
-          </select>
+            <div className="flex gap-3 flex-wrap">
+            <div className="relative flex-1 group/search">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within/search:text-indigo-500 transition-colors" />
+                <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search documents..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all shadow-sm"
+                />
+            </div>
+            <select
+                value={filterBy}
+                onChange={(e) => setFilterBy(e.target.value as "all" | "starred" | "folders" | "notes")}
+                className="px-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+            >
+                <option value="all">All Items</option>
+                <option value="starred">Starred</option>
+                <option value="folders">Folders</option>
+                <option value="notes">Notes</option>
+            </select>
+            </div>
         </div>
       </header>
 
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-8">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={() => document.body.classList.add("dragging")}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={filteredTree.map((n) => n._id)}
-              strategy={verticalListSortingStrategy}
+        <main className="flex-1 overflow-y-auto">
+            <div className="max-w-4xl mx-auto w-full p-8 pb-32">
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={() => document.body.classList.add("dragging")}
+                onDragEnd={handleDragEnd}
             >
-              <ul className="space-y-1">
-                {filteredTree.map((doc) => (
-                  <SortableItem
-                    key={doc._id}
-                    doc={doc}
-                    level={0}
-                    tree={treeData.tree}
-                    expanded={{}}
-                    setExpanded={() => {}}
-                    editingId={editingId}
-                    editValue={editValue}
-                    setEditValue={setEditValue}
-                    setEditingId={setEditingId}
-                    handleRename={(id: string, title: string) => {
-                      setEditingId(id);
-                      setEditValue(title);
-                    }}
-                    handleRenameSave={handleRenameSave}
-                    setContextMenu={() => {}}
-                    moveDropdown={null}
-                    setMoveDropdown={() => {}}
-                    handleMoveTo={() => {}}
-                    allFolders={[]}
-                    renderTree={() => null}
-                    handleDelete={handleDelete}
-                    toggleStarred={({ id }) =>
-                      toggleStarred({ id: id as Id<"documents"> })
-                    }
-                  />
-                ))}
-              </ul>
-            </SortableContext>
-          </DndContext>
+                <SortableContext
+                items={filteredTree.map((n) => n._id)}
+                strategy={verticalListSortingStrategy}
+                >
+                <ul className="space-y-1">
+                    {filteredTree.length === 0 ? (
+                        <div className="py-20 text-center">
+                             <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-4">
+                                <SearchIcon className="w-8 h-8 text-slate-400" />
+                             </div>
+                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No documents found</h3>
+                             <p className="text-slate-500 dark:text-slate-400">Try creating a new note or adjusting your filters.</p>
+                        </div>
+                    ) : (
+                        filteredTree.map((doc) => (
+                        <SortableItem
+                            key={doc._id}
+                            doc={doc}
+                            level={0}
+                            tree={treeData.tree}
+                            expanded={{}}
+                            setExpanded={() => {}}
+                            editingId={editingId}
+                            editValue={editValue}
+                            setEditValue={setEditValue}
+                            setEditingId={setEditingId}
+                            handleRename={(id: string, title: string) => {
+                            setEditingId(id);
+                            setEditValue(title);
+                            }}
+                            handleRenameSave={handleRenameSave}
+                            setContextMenu={() => {}}
+                            moveDropdown={null}
+                            setMoveDropdown={() => {}}
+                            handleMoveTo={() => {}}
+                            allFolders={[]}
+                            renderTree={() => null}
+                            handleDelete={handleDelete}
+                            toggleStarred={({ id }: { id: string }) =>
+                            toggleStarred({ id: id as Id<"documents"> })
+                            }
+                        />
+                        ))
+                    )}
+                </ul>
+                </SortableContext>
+            </DndContext>
+            </div>
         </main>
 
         <StarredSidebar starredDocs={starredDocs} />

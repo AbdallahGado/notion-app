@@ -37,7 +37,6 @@ interface Shortcut {
 
 // Constants
 const ANIMATION_DURATION = 0.2;
-const FEEDBACK_DURATION = 1500;
 
 const SHORTCUT_CATEGORIES: ShortcutCategory[] = [
   {
@@ -147,8 +146,6 @@ export default function KeyboardShortcuts({
   defaultIsOpen = false,
 }: KeyboardShortcutsProps) {
   const [showOverlay, setShowOverlay] = useState(defaultIsOpen);
-  const [lastKeyCombo, setLastKeyCombo] = useState<string[]>([]);
-  const [showFeedback, setShowFeedback] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [focusedShortcutIndex, setFocusedShortcutIndex] = useState(-1);
@@ -179,18 +176,7 @@ export default function KeyboardShortcuts({
     );
   }, []);
 
-  const getNormalizedKeyName = useCallback((key: string): string => {
-    const keyMap: { [key: string]: string } = {
-      " ": "Space",
-      ArrowUp: "↑",
-      ArrowDown: "↓",
-      ArrowLeft: "←",
-      ArrowRight: "→",
-      Enter: "↵",
-      Escape: "Esc",
-    };
-    return keyMap[key] || key;
-  }, []);
+
 
   const handleClose = useCallback(() => {
     setShowOverlay(false);
@@ -239,27 +225,7 @@ export default function KeyboardShortcuts({
     [showOverlay, handleClose, getTotalShortcutsCount]
   );
 
-  const handleKeyComboFeedback = useCallback(
-    (e: KeyboardEvent): void => {
-      if (showOverlay) return;
 
-      const key = getNormalizedKeyName(e.key);
-      const combo: string[] = [];
-      if (e.ctrlKey) combo.push("Ctrl");
-      if (e.altKey) combo.push("Alt");
-      if (e.shiftKey) combo.push("Shift");
-      if (key !== "Control" && key !== "Alt" && key !== "Shift") {
-        combo.push(key);
-      }
-
-      if (combo.length > 0) {
-        setLastKeyCombo(combo);
-        setShowFeedback(true);
-        setTimeout(() => setShowFeedback(false), FEEDBACK_DURATION);
-      }
-    },
-    [showOverlay, getNormalizedKeyName]
-  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent): void => {
@@ -267,7 +233,7 @@ export default function KeyboardShortcuts({
       if (handleModalKeyboard(e)) return;
       // handleKeyComboFeedback(e); // Disabled per user request (unwanted toast on keypress)
     },
-    [handleGlobalShortcut, handleModalKeyboard, handleKeyComboFeedback]
+    [handleGlobalShortcut, handleModalKeyboard]
   );
 
   // Global keyboard listener
@@ -303,59 +269,71 @@ export default function KeyboardShortcuts({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: ANIMATION_DURATION }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
             onClick={handleClose}
           >
             <motion.div
               ref={modalRef}
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              transition={{ duration: ANIMATION_DURATION }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-2xl w-full space-y-6 shadow-2xl relative"
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="glass-panel relative w-full max-w-2xl rounded-2xl p-0 overflow-hidden shadow-2xl border border-white/20 dark:border-white/10"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               aria-modal="true"
               role="dialog"
               aria-labelledby="shortcuts-title"
             >
-              <h2
-                id="shortcuts-title"
-                className="text-xl font-semibold text-gray-900 dark:text-white"
-              >
-                Keyboard shortcuts
-              </h2>
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-black/5 dark:border-white/5 bg-white/50 dark:bg-[#0b0c14]/50 backdrop-blur-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h2
+                    id="shortcuts-title"
+                    className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-indigo-800 to-slate-900 dark:from-white dark:via-indigo-200 dark:to-white"
+                  >
+                    Keyboard Shortcuts
+                  </h2>
+                   <div className="text-[10px] font-medium px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                      {getTotalShortcutsCount()} commands
+                   </div>
+                </div>
 
-              {/* Search bar */}
-              <div className="relative">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search shortcuts..."
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchQuery(e.target.value)
-                  }
-                  className="w-full px-4 py-2 pr-10 bg-gray-100 dark:bg-gray-700/50 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
-                  role="searchbox"
-                  aria-label="Search shortcuts"
-                />
-                <Search
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                  aria-hidden="true"
-                />
+                {/* Search bar */}
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                     <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  </div>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search shortcuts..."
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchQuery(e.target.value)
+                    }
+                    className="block w-full pl-10 pr-3 py-2.5 bg-slate-100/50 dark:bg-black/20 border border-transparent focus:border-indigo-500/30 rounded-xl leading-5 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm transition-all duration-300"
+                    role="searchbox"
+                    aria-label="Search shortcuts"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[10px] font-medium text-slate-500 dark:text-slate-400 font-sans">
+                      <span className="text-xs">Esc</span>
+                    </kbd>
+                  </div>
+                </div>
               </div>
 
               {/* Categories */}
-              <div className="space-y-6">
+              <div className="px-6 py-6 max-h-[60vh] overflow-y-auto scrollbar-hide space-y-8 bg-white/40 dark:bg-[#0b0c14]/40">
                 {filteredCategories.map((category, categoryIndex) => (
                   <motion.div
                     key={category.name}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: categoryIndex * 0.1 }}
+                    transition={{ delay: categoryIndex * 0.05 }}
                   >
                     <div
-                      className="flex items-center justify-between mb-3 cursor-pointer"
+                      className="flex items-center justify-between mb-3 cursor-pointer group/category"
                       onClick={() =>
                         setActiveCategory(
                           activeCategory === category.name
@@ -367,18 +345,21 @@ export default function KeyboardShortcuts({
                       aria-expanded={activeCategory === category.name}
                       tabIndex={0}
                     >
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {category.name}
-                      </h3>
-                      <motion.span
+                      <div className="flex items-center gap-2">
+                         <div className="h-4 w-1 rounded-full bg-indigo-500/50 group-hover/category:bg-indigo-500 transition-colors" />
+                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 group-hover/category:text-indigo-600 dark:group-hover/category:text-indigo-400 transition-colors">
+                           {category.name}
+                         </h3>
+                      </div>
+                      <motion.div
                         animate={{
                           rotate: activeCategory === category.name ? 180 : 0,
                         }}
-                        className="text-gray-400"
+                        className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 text-slate-400 transition-colors"
                         aria-hidden="true"
                       >
-                        ▼
-                      </motion.span>
+                         <ArrowDown className="w-3.5 h-3.5" />
+                      </motion.div>
                     </div>
 
                     <AnimatePresence>
@@ -388,19 +369,19 @@ export default function KeyboardShortcuts({
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="space-y-2 overflow-hidden"
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-hidden"
                         >
                           {category.shortcuts.map((shortcut, shortcutIndex) => (
                             <motion.div
                               key={shortcut.label}
-                              initial={{ x: -20, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ delay: shortcutIndex * 0.05 }}
-                              className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: shortcutIndex * 0.03 }}
+                              className={`group/shortcut relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
                                 focusedShortcutIndex ===
                                 getTotalShortcutsCount() - shortcutIndex
-                                  ? "bg-indigo-50 dark:bg-indigo-900/30"
-                                  : "hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                                  ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 shadow-md ring-1 ring-indigo-500/20"
+                                  : "bg-white/60 dark:bg-slate-900/40 border-slate-200/50 dark:border-slate-700/50 hover:border-indigo-300/50 dark:hover:border-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5"
                               }`}
                               tabIndex={0}
                               role="listitem"
@@ -411,6 +392,7 @@ export default function KeyboardShortcuts({
                                       detail: { action: shortcut.action },
                                     })
                                   );
+                                  handleClose();
                                 }
                               }}
                               onKeyDown={(e: React.KeyboardEvent) => {
@@ -420,36 +402,39 @@ export default function KeyboardShortcuts({
                                       detail: { action: shortcut.action },
                                     })
                                   );
+                                  handleClose();
                                 }
                               }}
                             >
                               <div className="flex items-center gap-3">
-                                <span
-                                  className="text-gray-400 dark:text-gray-500"
-                                  aria-hidden="true"
-                                >
-                                  {shortcut.icon}
-                                </span>
-                                <div>
-                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                <div className={`p-2 rounded-lg transition-colors ${
+                                   focusedShortcutIndex === getTotalShortcutsCount() - shortcutIndex 
+                                   ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" 
+                                   : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover/shortcut:bg-indigo-50 dark:group-hover/shortcut:bg-indigo-500/10 group-hover/shortcut:text-indigo-500"
+                                }`}>
+                                  {React.isValidElement(shortcut.icon) && React.cloneElement(shortcut.icon as React.ReactElement, { className: "w-4 h-4" })}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover/shortcut:text-indigo-600 dark:group-hover/shortcut:text-indigo-400 transition-colors">
                                     {shortcut.label}
                                   </span>
                                   {shortcut.description && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 line-clamp-1">
                                       {shortcut.description}
-                                    </p>
+                                    </span>
                                   )}
                                 </div>
                               </div>
+                              
                               <div
-                                className="flex gap-1"
+                                className="flex items-center gap-1"
                                 role="group"
                                 aria-label={`Keys for ${shortcut.label}`}
                               >
                                 {shortcut.keys.map((key) => (
                                   <kbd
                                     key={key}
-                                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-800 dark:text-gray-200 min-w-[24px] text-center shadow-sm"
+                                    className="min-w-[20px] h-6 px-1.5 flex items-center justify-center text-[10px] font-bold font-sans rounded bg-white dark:bg-black border border-b-2 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 shadow-sm"
                                   >
                                     {key}
                                   </kbd>
@@ -467,59 +452,36 @@ export default function KeyboardShortcuts({
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-8"
+                    className="flex flex-col items-center justify-center py-12 text-center"
                     role="status"
                   >
-                    <p className="text-gray-500 dark:text-gray-400">
+                    <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-full mb-3">
+                       <Search className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">
                       No shortcuts found for &quot;{searchQuery}&quot;
                     </p>
+                    <p className="text-xs text-slate-400 mt-1">Try searching for &quot;bold&quot; or &quot;heading&quot;</p>
                   </motion.div>
                 )}
               </div>
 
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                Press{" "}
-                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                  Esc
-                </kbd>{" "}
-                to close or{" "}
-                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                  Ctrl
-                </kbd>{" "}
-                +
-                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                  /
-                </kbd>{" "}
-                to toggle
-              </p>
+              {/* Footer */}
+              <div className="px-6 py-3 bg-slate-50 dark:bg-[#0b0c14]/80 border-t border-black/5 dark:border-white/5 flex items-center justify-center backdrop-blur-sm">
+                  <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                    <span className="opacity-70">Pro tip: Press</span>
+                    <kbd className="inline-flex items-center justify-center px-1 h-4 text-[9px] font-bold rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Ctrl</kbd>
+                    <span>+</span>
+                    <kbd className="inline-flex items-center justify-center px-1 h-4 text-[9px] font-bold rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">/</kbd>
+                    <span className="opacity-70">to open this anytime</span>
+                  </p>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showFeedback && lastKeyCombo.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/90 dark:bg-gray-700/90 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm shadow-lg"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex items-center gap-2">
-              {lastKeyCombo.map((key) => (
-                <kbd
-                  key={key}
-                  className="px-2 py-1 bg-white/10 rounded min-w-[24px] text-center text-xs font-medium shadow-inner"
-                >
-                  {key}
-                </kbd>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </>
   );
 }

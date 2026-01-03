@@ -1,88 +1,161 @@
 "use client";
 
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import Image from "next/image";
 
-export const ImageResizer = (props: NodeViewProps) => {
-  const { node, updateAttributes, selected } = props;
-  const [resizing, setResizing] = useState(false);
-  const [width, setWidth] = useState(node.attrs.width || "100%");
-  
-  // Convert standard HTML width to number if possible for calculation, else use container reference
+type Align = "left" | "center" | "right";
+
+export const ImageResizer = ({
+  node,
+  updateAttributes,
+  selected,
+}: NodeViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const startXRef = useRef(0);
-  const startWidthRef = useRef(0);
+  const editorRef = useRef<HTMLElement | null>(null);
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  /* ---------------- State ---------------- */
+
+  const [tempWidth, setTempWidth] = useState(
+    node.attrs.width || "300px"
+  );
+
+  useEffect(() => {
+    setTempWidth(node.attrs.width || "300px");
+  }, [node.attrs.width]);
+
+  /* ---------------- Editor ---------------- */
+
+  useEffect(() => {
+    editorRef.current = document.querySelector(".ProseMirror");
+  }, []);
+
+  /* ---------------- Image URL ---------------- */
+
+  const freshUrl = useQuery(api.uploads.getFileUrl,
+    node.attrs.storageId ? { storageId: node.attrs.storageId } : "skip"
+  );
+
+  const imageSrc = freshUrl || node.attrs.src;
+
+  /* ---------------- Resize ---------------- */
+
+  const resizing = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+
+  const onResizeStart = (e: React.PointerEvent) => {
     e.preventDefault();
-    setResizing(true);
-    startXRef.current = e.clientX;
-    
-    // Get current width in pixels
-    if (containerRef.current) {
-        startWidthRef.current = containerRef.current.offsetWidth;
-    }
+    e.stopPropagation();
 
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+    resizing.current = true;
+    startX.current = e.clientX;
+    startWidth.current =
+      containerRef.current?.offsetWidth || 300;
+
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    if (!resizing) return;
-    
-    const diff = e.clientX - startXRef.current;
-    const newWidth = Math.max(100, startWidthRef.current + diff); // Min 100px
-    
-    // Update local state for smoothness
-    setWidth(`${newWidth}px`);
-  }, [resizing]);
+  const onPointerMove = useCallback((e: PointerEvent) => {
+    if (!resizing.current) return;
 
-  const onMouseUp = useCallback(() => {
-    setResizing(false);
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-    
-    // Commit the change
-    updateAttributes({ width: width });
-  }, [width, updateAttributes, onMouseMove]);
+    const diff = e.clientX - startX.current;
+    setTempWidth(`${Math.max(120, startWidth.current + diff)}px`);
+  }, []);
 
-  // Clean up listeners if unmounted while resizing
+  const onPointerUp = useCallback(() => {
+    if (resizing.current) {
+      updateAttributes({ width: tempWidth });
+    }
+    resizing.current = false;
+  }, [tempWidth, updateAttributes]);
+
   useEffect(() => {
-     return () => {
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-     };
-  }, [onMouseMove, onMouseUp]);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+
+    return () => {
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [onPointerMove, onPointerUp]);
+
+  /* ---------------- Drag = ALIGN ---------------- */
+
+  const onDragEnd = (e: React.PointerEvent) => {
+    if (!editorRef.current) return;
+
+    const rect = editorRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const ratio = x / rect.width;
+
+    let align: Align = "left";
+    if (ratio > 0.66) align = "right";
+    else if (ratio > 0.33) align = "center";
+
+    updateAttributes({ align });
+  };
+
+  /* ---------------- Render ---------------- */
 
   return (
-    <NodeViewWrapper className="image-resizer-wrapper flex justify-center py-2 relative group">
-      <div 
-         ref={containerRef}
-         className={cn(
-            "relative inline-block transition-shadow duration-200",
-            (selected || resizing) && "ring-2 ring-indigo-500 rounded-md shadow-lg"
-         )}
-         style={{ width: node.attrs.width || width, maxWidth: "100%" }}
-      >
-        {/* The Image */}
-        <img
-          src={node.attrs.src}
-          alt={node.attrs.alt}
-          className="rounded-md border border-transparent"
-          style={{ width: "100%", height: "auto", display: "block" }}
-        />
-
-        {/* Resize Handle */}
-        {(selected || resizing) && (
-            <div
-                onMouseDown={onMouseDown}
-                className="absolute right-2 bottom-2 h-4 w-4 bg-indigo-500 border-2 border-white rounded-full cursor-nwse-resize z-10 hover:scale-125 transition-transform"
-                title="Resize"
-            />
+    <NodeViewWrapper as="span">
+      <div
+        ref={containerRef}
+        onPointerUp={onDragEnd}
+        className={cn(
+          "group relative my-2",
+          node.attrs.align === "left" && "float-left mr-4",
+          node.attrs.align === "right" && "float-right ml-4",
+          node.attrs.align === "center" && "mx-auto",
+          selected && "ring-2 ring-indigo-500 rounded-md"
         )}
-        
-        {/* Delete button (optional, can just use backspace) */}
+        style={{
+          width: tempWidth,
+        }}
+      >
+        {/* Image */}
+        <div className="relative rounded-xl overflow-hidden shadow-sm group-hover:shadow-xl transition-all duration-300">
+          <Image
+            src={imageSrc}
+            alt={node.attrs.alt || "Uploaded image"}
+            draggable={false}
+            width={0}
+            height={0}
+            sizes="100vw"
+            unoptimized
+            style={{ width: '100%', height: 'auto' }}
+            className={cn(
+              "block rounded-xl transition-all duration-300",
+              selected ? "brightness-[.98]" : ""
+            )}
+          />
+          {selected && (
+            <div className="absolute inset-0 ring-2 ring-indigo-500/50 ring-offset-1 dark:ring-offset-[#0b0c14] rounded-xl pointer-events-none" />
+          )}
+        </div>
+
+        {/* Resize Handle - Glass Style */}
+        <div
+          onPointerDown={onResizeStart}
+          className="
+            absolute -right-3 bottom-1/2 translate-y-1/2
+            h-12 w-1.5
+            bg-slate-900/20 dark:bg-white/20
+            backdrop-blur-md
+            border border-white/20
+            rounded-full
+            cursor-ew-resize
+            opacity-0
+            group-hover:opacity-100
+            transition-all duration-200
+            hover:bg-indigo-500 hover:w-2
+            shadow-sm
+          "
+        />
       </div>
     </NodeViewWrapper>
   );

@@ -255,7 +255,26 @@ export const getById = query({
       throw new Error("Unauthorized");
     }
 
-    return document;
+    // If content is stored in Convex storage, fetch it
+    let content = document.content;
+    if (!content && document.contentStorageId) {
+      try {
+        const contentUrl = await context.storage.getUrl(document.contentStorageId);
+        if (contentUrl) {
+          const response = await fetch(contentUrl);
+          if (response.ok) {
+            content = await response.text();
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch content from storage:", error);
+      }
+    }
+
+    return {
+      ...document,
+      content,
+    };
   },
 });
 
@@ -313,6 +332,53 @@ export const update = mutation({
       throw new Error("Unauthorized");
     }
 
+    // Handle large content by storing in Convex storage
+    let contentToStore = rest.content;
+    let contentStorageId = existingDocument.contentStorageId;
+
+      if (rest.content !== undefined) {
+        const contentSize = new Blob([rest.content]).size;
+
+        // If content is larger than 100KB (leaving buffer for 1MB storage limit), store in Convex storage
+        if (contentSize > 100 * 1024) {
+          // Delete existing storage file if it exists
+          if (contentStorageId) {
+            await context.storage.delete(contentStorageId);
+          }
+
+          try {
+            // Generate upload URL and store content
+            const uploadUrl = await context.storage.generateUploadUrl();
+            const contentBlob = new Blob([rest.content], { type: 'text/html' });
+
+            const uploadResult = await fetch(uploadUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/html' },
+              body: contentBlob,
+            });
+
+            if (!uploadResult.ok) {
+              throw new Error(`Failed to upload content: ${uploadResult.status}`);
+            }
+
+            const { storageId } = await uploadResult.json();
+            contentStorageId = storageId;
+            contentToStore = undefined; // Don't store in DB field
+          } catch (error) {
+            // If upload fails, keep existing content
+            contentToStore = existingDocument.content;
+            contentStorageId = existingDocument.contentStorageId;
+          }
+        } else {
+          // Content is small enough, store in DB and clean up storage if needed
+          if (contentStorageId) {
+            await context.storage.delete(contentStorageId);
+            contentStorageId = undefined;
+          }
+          contentToStore = rest.content;
+        }
+      }
+
     // Create a version snapshot before updating
     if (rest.title !== undefined || rest.content !== undefined) {
       const latestVersion = await context.db
@@ -323,18 +389,77 @@ export const update = mutation({
 
       const versionNumber = (latestVersion?.versionNumber || 0) + 1;
 
+      // Get the current content (from storage if needed)
+      let currentContent = existingDocument.content;
+      let currentContentStorageId = existingDocument.contentStorageId;
+      if (!currentContent && existingDocument.contentStorageId) {
+        try {
+          const contentUrl = await context.storage.getUrl(existingDocument.contentStorageId);
+          if (contentUrl) {
+            const response = await fetch(contentUrl);
+            if (response.ok) {
+              currentContent = await response.text();
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch current content for version:", error);
+        }
+      }
+
+      // Handle large content in version snapshots
+      let versionContentToStore = undefined;
+      let versionContentStorageId = undefined;
+
+      if (currentContent) {
+        const contentSize = new Blob([currentContent]).size;
+
+        // If content is larger than 100KB, store in Convex storage for version
+        if (contentSize > 100 * 1024) {
+          try {
+            // Generate upload URL and store content for version
+            const uploadUrl = await context.storage.generateUploadUrl();
+            const contentBlob = new Blob([currentContent], { type: 'text/html' });
+
+            const uploadResult = await fetch(uploadUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/html' },
+              body: contentBlob,
+            });
+
+            if (!uploadResult.ok) {
+              throw new Error(`Failed to upload version content: ${uploadResult.status}`);
+            }
+
+            const { storageId } = await uploadResult.json();
+            versionContentStorageId = storageId;
+            versionContentToStore = undefined; // Don't store in DB field
+          } catch (error) {
+            versionContentToStore = undefined;
+            versionContentStorageId = undefined;
+          }
+        } else {
+          // Content is small enough, store in DB
+          versionContentToStore = currentContent;
+        }
+      }
+
       await context.db.insert("document_versions", {
         documentId: id,
         title: existingDocument.title,
-        content: existingDocument.content,
+        content: versionContentToStore,
+        contentStorageId: versionContentStorageId,
         userId,
         createdAt: Date.now(),
         versionNumber,
       });
     }
 
+    const { content: _, ...restWithoutContent } = rest;
+
     const document = await context.db.patch(id, {
-      ...rest,
+      ...restWithoutContent,
+      content: contentToStore,
+      contentStorageId,
     });
 
     return document;
@@ -469,19 +594,133 @@ export const restoreVersion = mutation({
 
     const versionNumber = (latestVersion?.versionNumber || 0) + 1;
 
+    // Get the current content (from storage if needed)
+    let currentContent = document.content;
+    if (!currentContent && document.contentStorageId) {
+      try {
+        const contentUrl = await context.storage.getUrl(document.contentStorageId);
+        if (contentUrl) {
+          const response = await fetch(contentUrl);
+          if (response.ok) {
+            currentContent = await response.text();
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch current content for version:", error);
+      }
+    }
+
+    // Handle large content in version snapshots
+    let versionContentToStore = currentContent;
+    let versionContentStorageId = undefined;
+
+    if (currentContent) {
+      const contentSize = new Blob([currentContent]).size;
+
+      // If content is larger than 100KB, store in Convex storage for version
+      if (contentSize > 100 * 1024) {
+        try {
+          // Generate upload URL and store content for version
+          const uploadUrl = await context.storage.generateUploadUrl();
+          const contentBlob = new Blob([currentContent], { type: 'text/html' });
+
+          const uploadResult = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/html' },
+            body: contentBlob,
+          });
+
+          if (!uploadResult.ok) {
+            throw new Error(`Failed to upload version content: ${uploadResult.status}`);
+          }
+
+          const { storageId } = await uploadResult.json();
+          versionContentStorageId = storageId;
+          versionContentToStore = undefined; // Don't store in DB field
+        } catch (error) {
+          versionContentToStore = undefined;
+          versionContentStorageId = undefined;
+        }
+      }
+    }
+
     await context.db.insert("document_versions", {
       documentId: args.documentId,
       title: document.title,
-      content: document.content,
+      content: versionContentToStore,
+      contentStorageId: versionContentStorageId,
       userId,
       createdAt: Date.now(),
       versionNumber,
     });
 
-    // Restore the selected version
+    // Restore the selected version - handle large content properly
+    // Get the version content (from storage if needed)
+    let versionContent = version.content;
+    if (!versionContent && version.contentStorageId) {
+      try {
+        const contentUrl = await context.storage.getUrl(version.contentStorageId);
+        if (contentUrl) {
+          const response = await fetch(contentUrl);
+          if (response.ok) {
+            versionContent = await response.text();
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch version content from storage:", error);
+      }
+    }
+
+    let contentToStore = versionContent;
+    let contentStorageId = document.contentStorageId;
+
+    if (versionContent !== undefined) {
+      const contentSize = new Blob([versionContent]).size;
+
+      // If content is larger than 100KB, store in Convex storage
+      if (contentSize > 100 * 1024) {
+        // Delete existing storage file if it exists
+        if (contentStorageId) {
+          await context.storage.delete(contentStorageId);
+        }
+
+        try {
+          // Generate upload URL and store content
+          const uploadUrl = await context.storage.generateUploadUrl();
+          const contentBlob = new Blob([versionContent], { type: 'text/html' });
+
+          const uploadResult = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/html' },
+            body: contentBlob,
+          });
+
+          if (!uploadResult.ok) {
+            throw new Error(`Failed to upload content: ${uploadResult.status}`);
+          }
+
+          const { storageId } = await uploadResult.json();
+          contentStorageId = storageId;
+          contentToStore = undefined; // Don't store in DB field
+        } catch (error) {
+          // If upload fails, keep existing
+          contentToStore = document.content;
+          contentStorageId = document.contentStorageId;
+        }
+      } else {
+        // Content is small enough, store in DB and clean up storage if needed
+        if (contentStorageId) {
+          await context.storage.delete(contentStorageId);
+          contentStorageId = undefined;
+        }
+        contentToStore = versionContent;
+      }
+    }
+
     const restoredDocument = await context.db.patch(args.documentId, {
       title: version.title,
-      content: version.content,
+      content: contentToStore,
+      contentStorageId,
     });
 
     return restoredDocument;

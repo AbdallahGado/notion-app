@@ -2,7 +2,7 @@
 const nextConfig = {
   // Enable experimental features for better performance
   experimental: {
-    optimizePackageImports: ['@tiptap/react', '@tiptap/pm', 'framer-motion'],
+    optimizePackageImports: ['@tiptap/pm', 'framer-motion'],
   },
 
   // Bundle analyzer (conditionally enabled)
@@ -40,6 +40,14 @@ const nextConfig = {
 
   // Performance optimizations
   poweredByHeader: false,
+
+  // Ignore ESLint and TypeScript errors during build
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 
   // Reduce bundle size
   modularizeImports: {

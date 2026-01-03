@@ -243,7 +243,6 @@ export default function CommentPopup({
             className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm transition"
             onClick={() => {
               // Add emoji reaction logic here
-              console.log(`Reacted with ${emoji}`);
             }}
             aria-label={`React with ${emoji}`}
           >

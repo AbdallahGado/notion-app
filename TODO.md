@@ -1,21 +1,47 @@
-# TODO: Document Page Changes
+# ESLint Errors Fix Plan
 
-## 1. Improve Drag and Drop Area Styling
+## Files to Fix:
 
-- Update `components/ui/DropZone.tsx` with better colors, borders, and responsiveness.
-- [x] Increased icon size from w-16 h-16 to w-20 h-20 for better visibility
-- [x] Enhanced text sizing with responsive classes (text-xl sm:text-2xl) and changed to font-bold
-- [x] Improved color contrast for better readability in both light and dark modes
+### 1. app/(main)/(routes)/documents/[id]/page.tsx
+- [ ] Remove unused 'saving' variable (line 201)
 
-## 2. Ensure White Colors in Dark Mode
+### 2. app/(main)/_components/modals/CustomizeModal.tsx
+- [ ] Escape unescaped quotes in JSX (line 172)
 
-- Check and update text and icon colors in dark mode across `app/(main)/(routes)/documents/[id]/page.tsx`, `app/(main)/_components/Toolbar.tsx`, and `app/(main)/(routes)/documents/[id]/FloatingToolbar.tsx`.
+### 3. app/(main)/_components/navigation.tsx
+- [ ] Remove unused imports: showErrorToast, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger
+- [ ] Fix useMemo dependency warning for 'docs'
+- [ ] Change 'let result' to 'const result'
 
-## 3. Make Toolbar Sticky
+### 4. app/(main)/_components/toolbar/ToolbarFormattingGroup.tsx
+- [ ] Remove unused ToolbarShortcut import
 
-- [x] Modify the Toolbar in `app/(main)/(routes)/documents/[id]/page.tsx` to be sticky and follow scroll.
+### 5. app/(main)/_components/toolbar/types.ts
+- [ ] Replace 'any' types with proper types (lines 91, 92, 173, 202)
 
-## 4. Add White Color to Tools
+### 6. app/(main)/_components/toolbar/__tests__/Toolbar.test.tsx
+- [ ] Remove unused imports: ToolbarButton, Bold
+- [ ] Replace 'any' types in mock functions
+- [ ] Remove unused parameters: onClose, type
 
-- Add white (#ffffff) to the COLORS array in `app/(main)/_components/Toolbar.tsx`.
-- Add white to HIGHLIGHT_COLORS in `app/(main)/(routes)/documents/[id]/FloatingToolbar.tsx`.
+### 7. app/(main)/_components/Toolbar.tsx
+- [ ] Remove unused imports: UploadCloud, Settings, AlignLeft, AlignCenter, AlignRight
+- [ ] Remove unused variables: error, handleFileImport, handleMarkdownFile
+- [ ] Escape unescaped quote in JSX (line 402)
+
+### 8. app/(main)/_components/user-item.tsx
+- [ ] Remove unused imports: Button, cn
+
+### 9. components/Editor.tsx
+- [ ] Replace 'any' type for setEditor prop
+
+### 10. components/IconPicker.tsx
+- [ ] Remove unused 'currentTheme' variable
+
+### 11. components/ImageResizer.tsx
+- [ ] Replace 'any' type for api query
+- [ ] Add missing dependency 'onPointerUp' to useEffect
+- [ ] Consider replacing img with Next.js Image component
+
+### 12. components/ui/input.tsx
+- [ ] Fix empty interface issue

@@ -20,6 +20,14 @@
     --gradient-subtle: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 100%);
 
     --radius: 0.75rem;
+
+    /* Modern CSS Variables for enhanced theming */
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --shadow-strong: 0 16px 64px rgba(0, 0, 0, 0.16);
+    --gradient-primary-v2: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   }
 
   .dark {
@@ -171,11 +179,11 @@ ul[data-type="taskList"] {
 }
 
 ul[data-type="taskList"] li {
-  @apply flex items-start gap-3 my-2;
+  @apply flex items-center gap-3 my-2;
 }
 
 ul[data-type="taskList"] li input[type="checkbox"] {
-  @apply mt-1.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer;
+  @apply w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer flex-shrink-0;
 }
 
 /* Links */
@@ -832,42 +840,70 @@ body.dragging * {
   background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
 }
 
-/* Enhanced Tables */
+/* Enhanced Tables - Premium Zen Overhaul */
 .ProseMirror table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
-  margin: 1.5rem 0;
-  border-radius: 12px;
+  margin: 2rem 0;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .ProseMirror table {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
 }
 
 .ProseMirror th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 600;
-  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.08) 100%);
+  color: #4f46e5;
+  font-weight: 700;
+  padding: 1rem 1.25rem;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark .ProseMirror th {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(129, 140, 248, 0.15) 100%);
+  color: #818cf8;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .ProseMirror td {
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
   background: white;
+  font-size: 0.95rem;
+  transition: background 0.3s ease;
 }
 
 .dark .ProseMirror td {
-  border-color: #374151;
-  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.03);
+  background: #0b0c14;
+}
+
+.ProseMirror tr:last-child td {
+  border-bottom: none;
+}
+
+.ProseMirror td:last-child {
+  border-right: none;
 }
 
 .ProseMirror tr:hover td {
-  background: #f9fafb;
+  background: #fcfdfe;
 }
 
 .dark .ProseMirror tr:hover td {
-  background: #374151;
+  background: #141624;
 }
 
 /* Enhanced Links */
@@ -892,17 +928,17 @@ body.dragging * {
 
 .ProseMirror ul[data-type="taskList"] li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
 }
 
 .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
   width: 1.25rem;
   height: 1.25rem;
-  margin-top: 0.25rem;
   cursor: pointer;
   accent-color: #667eea;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 /* Enhanced Focus States */
@@ -1039,4 +1075,450 @@ body.dragging * {
 
 .dark .empty-state-description {
   color: #6b7280;
+}
+
+/* ============================================
+   TOOLBAR-SPECIFIC ENHANCEMENTS
+   ============================================ */
+
+/* Enhanced Toolbar Button Styles */
+.toolbar-button {
+  @apply relative overflow-hidden transition-all duration-300 ease-out;
+  @apply hover:scale-105 active:scale-95;
+  @apply hover:shadow-lg hover:shadow-indigo-500/20;
+}
+
+.toolbar-button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.toolbar-button:hover::before {
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+}
+
+/* Toolbar Button Active State with Glow */
+.toolbar-button-active {
+  @apply bg-gradient-to-r from-indigo-500/20 to-purple-500/20;
+  @apply border-indigo-400/40 dark:border-indigo-500/40;
+  box-shadow: 
+    0 0 20px rgba(99, 102, 241, 0.3),
+    inset 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.dark .toolbar-button-active {
+  box-shadow: 
+    0 0 25px rgba(99, 102, 241, 0.4),
+    inset 0 0 15px rgba(99, 102, 241, 0.15);
+}
+
+/* Toolbar Group Separator with Gradient */
+.toolbar-separator {
+  @apply w-px h-6 mx-1 sm:mx-1.5;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(99, 102, 241, 0.3),
+    transparent
+  );
+}
+
+.dark .toolbar-separator {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(99, 102, 241, 0.4),
+    transparent
+  );
+}
+
+/* Enhanced Glass Panel for Toolbar */
+.toolbar-glass {
+  @apply backdrop-blur-2xl;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .toolbar-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(15, 23, 42, 0.8) 50%,
+    rgba(15, 23, 42, 0.9) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Toolbar Icon Animations */
+@keyframes icon-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.1); }
+}
+
+@keyframes icon-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes icon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.icon-hover-bounce:hover svg,
+.icon-hover-bounce:hover {
+  animation: icon-bounce 0.5s ease-in-out;
+}
+
+.icon-hover-spin:hover svg {
+  animation: icon-spin 0.6s ease-in-out;
+}
+
+/* Toolbar Dropdown Enhanced */
+.toolbar-dropdown {
+  @apply backdrop-blur-xl rounded-xl border shadow-2xl;
+  @apply bg-white/95 dark:bg-slate-900/95;
+  @apply border-indigo-200/50 dark:border-indigo-800/50;
+  animation: dropdown-slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdown-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Toolbar Button Focus Ring */
+.toolbar-focus-ring:focus-visible {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+  @apply dark:ring-indigo-400 dark:ring-offset-slate-900;
+}
+
+/* Shimmer Effect for Toolbar Border */
+@keyframes toolbar-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.toolbar-shimmer {
+  position: relative;
+}
+
+.toolbar-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.5),
+    transparent
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background-size: 200% 100%;
+  animation: toolbar-shimmer 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Gradient Glow Effect for Active Buttons */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(99, 102, 241, 0.3),
+      0 0 20px rgba(99, 102, 241, 0.2),
+      0 0 30px rgba(99, 102, 241, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(99, 102, 241, 0.4),
+      0 0 30px rgba(99, 102, 241, 0.3),
+      0 0 45px rgba(99, 102, 241, 0.2);
+  }
+}
+
+.toolbar-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Improved Tooltip Animations */
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-animate {
+  animation: tooltip-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Toolbar Button Ripple Effect */
+.toolbar-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar-ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s, opacity 0.6s;
+  opacity: 0;
+}
+
+.toolbar-ripple:active::after {
+  width: 200%;
+  height: 200%;
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Enhanced Button Group Spacing */
+.toolbar-group {
+  @apply flex gap-0.5 sm:gap-1 md:gap-1.5;
+  @apply px-1 sm:px-1.5 md:px-2 py-1;
+  @apply transition-all duration-300;
+}
+
+.toolbar-group:hover {
+  @apply gap-1 sm:gap-1.5 md:gap-2;
+}
+
+/* Gradient Background for Toolbar */
+.toolbar-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.05) 0%,
+    rgba(139, 92, 246, 0.05) 50%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 10s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.dark .toolbar-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(139, 92, 246, 0.08) 50%,
+    rgba(236, 72, 153, 0.08) 100%
+  );
+  background-size: 200% 200%;
+}
+
+/* Mobile Toolbar Optimizations */
+@media (max-width: 768px) {
+  .toolbar-button {
+    @apply hover:scale-100 active:scale-95;
+    @apply text-sm;
+    @apply min-w-[36px] min-h-[36px];
+  }
+  
+  .toolbar-group {
+    @apply gap-0.5 px-0.5 py-0.5;
+  }
+  
+  .toolbar-glass {
+    @apply backdrop-blur-xl;
+  }
+  
+  /* Better mobile toolbar layout */
+  .toolbar-wrapper {
+    @apply overflow-x-auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .toolbar-wrapper > div {
+    scroll-snap-align: start;
+  }
+  
+  /* Compact mobile buttons */
+  .toolbar-wrapper .toolbar-button {
+    @apply min-w-[32px] min-h-[32px];
+    @apply p-1.5;
+  }
+  
+  /* Hide some separators on mobile for cleaner look */
+  .toolbar-separator {
+    @apply hidden sm:block;
+  }
+  
+  /* Ensure toolbar doesn't break on small screens */
+  .toolbar-wrapper {
+    @apply max-w-full;
+    @apply min-h-[48px];
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .toolbar-wrapper {
+    @apply overflow-x-auto;
+  }
+  
+  .toolbar-button {
+    @apply min-w-[36px] min-h-[36px];
+  }
+}
+
+/* Large screen - ensure everything is visible */
+@media (min-width: 1025px) {
+  .toolbar-wrapper {
+    @apply overflow-visible;
+  }
+  
+  /* Allow toolbar to wrap if needed on very wide content */
+  .toolbar-wrapper > div:first-child {
+    @apply flex-wrap;
+  }
+}
+
+/* Accessibility: Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-button,
+  .toolbar-button::before,
+  .toolbar-ripple::after,
+  .icon-hover-bounce:hover svg,
+  .icon-hover-spin:hover svg {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .toolbar-shimmer::after {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   NEW TOOLBAR REDESIGN TOKENS
+   ============================================ */
+
+.toolbar-floating-pill {
+  @apply inline-flex items-center;
+  @apply px-4 py-2;
+  @apply rounded-full;
+  @apply bg-white/70 dark:bg-slate-900/70;
+  @apply backdrop-blur-2xl;
+  @apply border border-slate-200/50 dark:border-slate-700/50;
+  @apply shadow-[0_8px_32px_0_rgba(31,38,135,0.15)];
+  @apply dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.4)];
+  @apply transition-all duration-500 ease-in-out;
+}
+
+.toolbar-vibrant-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.07);
+}
+
+.dark .toolbar-vibrant-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.4) 0%,
+    rgba(15, 23, 42, 0.1) 100%
+  );
+  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.3);
+}
+
+.toolbar-active-glow {
+  @apply relative;
+}
+
+.toolbar-active-glow::after {
+  content: "";
+  @apply absolute -bottom-1 left-1/2 -translate-x-1/2;
+  @apply w-1 h-1 rounded-full;
+  @apply bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)];
+  @apply transition-all duration-300;
+}
+
+.toolbar-separator-v2 {
+  @apply w-px h-6 mx-1;
+  @apply bg-slate-200 dark:bg-slate-800;
+  @apply opacity-50;
+}
+
+/* Scrollbar tweaks for mobile toolbar */
+.toolbar-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Generic Scrollbar Hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Show scrollbar only on hover */
+.show-scrollbar-on-hover::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  transition: background-color 0.3s;
+}
+
+.show-scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.5);
+}
+
+.dark .show-scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.5);
 }

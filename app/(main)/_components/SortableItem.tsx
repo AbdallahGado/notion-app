@@ -209,7 +209,7 @@ ActionsDropdown.displayName = "ActionsDropdown";
 MoveDropdown.displayName = "MoveDropdown";
 TitleDisplay.displayName = "TitleDisplay";
 
-const SortableItem: React.FC<SortableItemProps> = ({
+const SortableItem: React.FC<SortableItemProps> = React.memo(({
   doc,
   level,
   tree,
@@ -250,49 +250,49 @@ const SortableItem: React.FC<SortableItemProps> = ({
     <motion.li
       ref={setNodeRef}
       style={style}
-      className={`py-2 ${isDragging ? "opacity-50" : ""}`}
-      initial={{ opacity: 0, y: 20 }}
+      className={`py-1 ${isDragging ? "opacity-50" : ""}`}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.2 }}
     >
-      <motion.div
-        className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer backdrop-blur-md border border-white/30 dark:border-slate-600/40 hover:border-white/50 dark:hover:border-slate-500/60 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-indigo-500/20 bg-white/15 dark:bg-slate-800/30 hover:bg-gradient-to-r hover:from-white/25 hover:via-white/20 hover:to-white/15 dark:hover:from-slate-800/40 dark:hover:via-slate-800/35 dark:hover:to-slate-800/30 ${isDragging ? "shadow-2xl scale-105" : ""}`}
+      <div
+        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer border border-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200 group ${
+          isDragging ? "shadow-lg bg-white dark:bg-slate-800 scale-[1.02]" : ""
+        }`}
         onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => {
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY, doc });
         }}
-        whileHover={{ scale: 1.02, y: -2 }}
-        whileTap={{ scale: 0.98 }}
       >
         <button
           {...attributes}
           {...listeners}
-          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-grab active:cursor-grabbing"
+          className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
           aria-label="Drag to reorder"
         >
-          <GripVertical className="h-4 w-4 text-gray-400" />
+          <GripVertical className="h-4 w-4 text-slate-400" />
         </button>
         {hasChildren ? (
           <button
             onClick={() =>
               setExpanded((e) => ({ ...e, [doc._id]: !e[doc._id] }))
             }
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             aria-label={expanded[doc._id] ? "Collapse folder" : "Expand folder"}
           >
             {expanded[doc._id] ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4 text-slate-500" />
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 text-slate-500" />
             )}
           </button>
         ) : (
           <span className="w-5" />
         )}
         {doc.isFolder ? (
-          <Folder className="h-5 w-5 text-yellow-500" />
+          <Folder className="h-4 w-4 text-amber-400 fill-amber-400/20" />
         ) : (
-          <FileText className="h-5 w-5 text-indigo-400 dark:text-indigo-300 flex-shrink-0" />
+          <FileText className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
         )}
         <div className="flex-1 min-w-0">
           <TitleDisplay
@@ -304,24 +304,27 @@ const SortableItem: React.FC<SortableItemProps> = ({
             handleRenameSave={handleRenameSave}
           />
         </div>
-        <button
-          onClick={() => toggleStarred({ id: doc._id })}
-          className="p-2 rounded-full hover:bg-yellow-50 dark:hover:bg-yellow-900 group"
-          aria-label={doc.starred ? "Unstar note" : "Star note"}
-        >
-          <Star
-            className={`h-5 w-5 ${doc.starred ? "fill-yellow-400 text-yellow-400" : "text-gray-300"} group-hover:text-yellow-500 transition`}
-            fill={doc.starred ? "#facc15" : "none"}
-          />
-        </button>
-        <ActionsDropdown
-          doc={doc}
-          moveDropdown={moveDropdown}
-          setMoveDropdown={setMoveDropdown}
-          handleRename={handleRename}
-          toggleStarred={toggleStarred}
-          handleDelete={handleDelete}
-        />
+        
+        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+            <button
+            onClick={() => toggleStarred({ id: doc._id })}
+            className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10"
+            aria-label={doc.starred ? "Unstar note" : "Star note"}
+            >
+            <Star
+                className={`h-4 w-4 ${doc.starred ? "fill-amber-400 text-amber-400" : "text-slate-400"}`}
+            />
+            </button>
+            <ActionsDropdown
+            doc={doc}
+            moveDropdown={moveDropdown}
+            setMoveDropdown={setMoveDropdown}
+            handleRename={handleRename}
+            toggleStarred={toggleStarred}
+            handleDelete={handleDelete}
+            />
+        </div>
+
         <MoveDropdown
           doc={doc}
           moveDropdown={moveDropdown}
@@ -329,13 +332,15 @@ const SortableItem: React.FC<SortableItemProps> = ({
           handleMoveTo={handleMoveTo}
           allFolders={allFolders}
         />
-      </motion.div>
+      </div>
       {hasChildren && expanded[doc._id] && (
-        <div>{renderTree(doc.children, level + 1, tree)}</div>
+        <div className="pl-4 border-l border-black/5 dark:border-white/5 ml-4 mt-1">
+            {renderTree(doc.children, level + 1, tree)}
+        </div>
       )}
     </motion.li>
   );
-};
+});
 
 // Set displayName for the main component
 SortableItem.displayName = "SortableItem";

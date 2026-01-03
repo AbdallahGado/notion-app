@@ -1,4 +1,4 @@
-import React from "react";
+ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 
@@ -12,7 +12,6 @@ interface TocItem {
 interface TableOfContentsProps {
   readonly tocItems: TocItem[];
   readonly showToc: boolean;
-  readonly activeTocItem: string | null;
   readonly expandedSections: Set<string>;
   readonly showMobileToc: boolean;
   readonly navigateToHeading: (pos: number) => void;
@@ -25,7 +24,6 @@ interface TableOfContentsProps {
 function TableOfContents({
   tocItems,
   showToc,
-  activeTocItem,
   expandedSections,
   showMobileToc,
   navigateToHeading,
@@ -39,12 +37,12 @@ function TableOfContents({
       {/* Sidebar TOC - Desktop */}
       {showToc && tocItems.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-72 glass-panel border-y-0 border-l-0 border-r rounded-r-2xl h-screen sticky top-0 z-10 hidden md:flex flex-col overflow-hidden"
+          initial={{ opacity: 0, x: -30, filter: "blur(10px)" }}
+          animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="w-64 border-r rounded-r-3xl h-screen sticky top-0 z-10 hidden xl:flex flex-col overflow-hidden bg-white/30 dark:bg-[#0b0c14]/30 backdrop-blur-2xl shadow-[20px_0_50px_rgba(0,0,0,0.02)] border-black/[0.03] dark:border-white/[0.03]"
         >
-          <div className="flex items-center justify-between p-6 pb-2">
+          <div className="flex items-center justify-between p-5 pb-2">
             <h3 className="text-sm font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
               Contents
             </h3>
@@ -73,7 +71,6 @@ function TableOfContents({
           <nav className="flex-1 overflow-y-auto p-4 pt-2 custom-scrollbar">
             <ul className="space-y-1">
               {tocItems.map((item, index) => {
-                const isActive = activeTocItem === item.id;
                 const hasChildren = tocItems.some(
                   (nextItem, nextIndex) =>
                     nextIndex > index && nextItem.level > item.level
@@ -90,10 +87,10 @@ function TableOfContents({
                 return (
                   <li
                     key={item.id}
-                    style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
+                    style={{ paddingLeft: `${(item.level - 1) * 16}px` }}
                     className="relative group"
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       {hasChildren && (
                         <button
                           onClick={() => toggleSectionExpansion(item.id)}
@@ -109,13 +106,9 @@ function TableOfContents({
                       
                       <button
                         onClick={() => navigateToHeading(item.pos)}
-                        className={`flex-1 text-left text-sm py-1.5 px-3 rounded-lg transition-all duration-200 truncate ${
-                          isActive
-                            ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 font-medium shadow-sm"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200"
-                        } ${!hasChildren ? "ml-4" : ""}`}
+                        className={`flex-1 text-left text-[13px] py-1.5 px-3 rounded-lg transition-all duration-200 truncate text-zinc-500 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200 ${!hasChildren ? "ml-[18px]" : ""}`}
                       >
-                         {item.text || <span className="opacity-50 italic">Untitled</span>}
+                         {item.text || <span className="opacity-40 italic">Untitled</span>}
                       </button>
                     </div>
                   </li>
@@ -134,7 +127,7 @@ function TableOfContents({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 md:hidden"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 xl:hidden"
               onClick={() => setShowMobileToc(false)}
             />
             <motion.div
@@ -142,7 +135,7 @@ function TableOfContents({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-2 right-2 bottom-2 w-80 bg-white/95 dark:bg-[#1F1F1F]/95 backdrop-blur-xl border border-white/20 shadow-2xl z-[100] md:hidden flex flex-col overflow-hidden rounded-2xl"
+              className="fixed top-2 right-2 bottom-2 w-80 bg-white/95 dark:bg-[#1F1F1F]/95 backdrop-blur-xl border border-white/20 shadow-2xl z-[100] xl:hidden flex flex-col overflow-hidden rounded-2xl"
             >
                <div className="flex items-center justify-between p-4 border-b border-white/10">
                  <h3 className="font-semibold text-slate-700 dark:text-slate-200">Table of Contents</h3>
@@ -166,11 +159,7 @@ function TableOfContents({
                              navigateToHeading(item.pos);
                              setShowMobileToc(false);
                            }}
-                           className={`w-full text-left text-sm p-3 rounded-xl transition-colors ${
-                              activeTocItem === item.id 
-                                ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
-                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                           }`}
+                           className="w-full text-left text-sm p-3 rounded-xl transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                          >
                            {item.text || "Untitled"}
                          </button>
@@ -187,4 +176,3 @@ function TableOfContents({
 }
 
 export default React.memo(TableOfContents);
-

@@ -42,7 +42,6 @@ interface SmartCommandPaletteProps {
 const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
   ({ editor, isOpen, onClose }) => {
     const [query, setQuery] = useState("");
-    const [selectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -194,7 +193,6 @@ const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
         icon: Zap,
         action: () => {
           // TODO: Implement AI summarization
-          console.log("AI Summarize");
         },
       },
       {
@@ -205,7 +203,6 @@ const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
         icon: Type,
         action: () => {
           // TODO: Implement AI rewriting
-          console.log("AI Rewrite");
         },
       },
     ];
@@ -229,6 +226,7 @@ const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20"
           onClick={onClose}
+          data-testid="backdrop"
         >
           <motion.div
             ref={containerRef}
@@ -261,7 +259,6 @@ const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
             {/* Commands List */}
             <div className="max-h-96 overflow-y-auto">
               {filteredCommands.map((command, index) => {
-                const isSelected = index === selectedIndex;
                 const Icon = command.icon;
 
                 return (
@@ -270,11 +267,7 @@ const SmartCommandPalette: React.FC<SmartCommandPaletteProps> = memo(
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`px-3 py-2 mx-1 rounded-lg cursor-pointer transition-colors ${
-                      isSelected
-                        ? "bg-blue-50 dark:bg-blue-900/30"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                    }`}
+                    className="px-3 py-2 mx-1 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     onClick={() => {
                       command.action();
                       onClose();

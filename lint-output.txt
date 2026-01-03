@@ -1,0 +1,94 @@
+
+> notion-clone@0.1.0 lint
+> next lint
+
+
+./app/(main)/(routes)/documents/[id]/page.tsx
+152:10  Error: 'showToolbar' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+155:20  Error: 'setPopupPos' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+201:10  Error: 'saving' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(main)/_components/modals/CustomizeModal.tsx
+172:71  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+172:80  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/(main)/_components/navigation.tsx
+3:68  Error: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+3:78  Error: 'UserCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+3:90  Error: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+3:102  Error: 'HelpCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+3:194  Error: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+3:197  Error: 'Heart' is defined but never used.  @typescript-eslint/no-unused-vars
+3:204  Error: 'History' is defined but never used.  @typescript-eslint/no-unused-vars
+3:213  Error: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Error: 'showErrorToast' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Error: 'Tooltip' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Error: 'TooltipContent' is defined but never used.  @typescript-eslint/no-unused-vars
+28:3  Error: 'TooltipProvider' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Error: 'TooltipTrigger' is defined but never used.  @typescript-eslint/no-unused-vars
+170:9  Warning: The 'docs' logical expression could make the dependencies of useMemo Hook (at line 347) change on every render. To fix this, wrap the initialization of 'docs' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+208:9  Error: 'result' is never reassigned. Use 'const' instead.  prefer-const
+
+./app/(main)/_components/toolbar/ToolbarFormattingGroup.tsx
+5:44  Error: 'ToolbarShortcut' is defined but never used.  @typescript-eslint/no-unused-vars
+53:47  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/(main)/_components/toolbar/types.ts
+91:22  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+92:20  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+173:37  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+202:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/(main)/_components/toolbar/__tests__/Toolbar.test.tsx
+5:8  Error: 'ToolbarButton' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Error: 'Bold' is defined but never used.  @typescript-eslint/no-unused-vars
+11:45  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+19:23  Error: 'onClose' is defined but never used.  @typescript-eslint/no-unused-vars
+19:34  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+24:28  Error: 'onClose' is defined but never used.  @typescript-eslint/no-unused-vars
+24:39  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+29:24  Error: 'onClose' is defined but never used.  @typescript-eslint/no-unused-vars
+29:35  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+64:22  Error: 'type' is defined but never used.  @typescript-eslint/no-unused-vars
+65:27  Error: 'type' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(main)/_components/Toolbar.tsx
+23:3  Error: 'UploadCloud' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Error: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+37:3  Error: 'AlignLeft' is defined but never used.  @typescript-eslint/no-unused-vars
+38:3  Error: 'AlignCenter' is defined but never used.  @typescript-eslint/no-unused-vars
+39:3  Error: 'AlignRight' is defined but never used.  @typescript-eslint/no-unused-vars
+235:35  Error: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+253:11  Error: 'handleFileImport' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+261:11  Error: 'handleMarkdownFile' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+272:22  Error: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+402:68  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/(main)/_components/user-item.tsx
+13:10  Error: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+15:10  Error: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/Editor.tsx
+74:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/IconPicker.tsx
+24:9  Error: 'currentTheme' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/ImageResizer.tsx
+38:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+84:6  Warning: React Hook useEffect has a missing dependency: 'onPointerUp'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+121:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/Toolbar.tsx
+4:10  Error: 'ImageIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+4:21  Error: 'Smile' is defined but never used.  @typescript-eslint/no-unused-vars
+4:28  Error: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+9:10  Error: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+13:10  Error: 'IconPicker' is defined but never used.  @typescript-eslint/no-unused-vars
+56:9  Error: 'onIconSelect' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+63:9  Error: 'onRemoveIcon' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/ui/input.tsx
+5:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

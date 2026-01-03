@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -133,8 +133,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
     );
   }
 
-  // Ensure tool titles are readable
-  const formatToolName = (id: string) => id.charAt(0).toUpperCase() + id.slice(1);
+
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
@@ -170,7 +169,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                   ))}
                   {filteredOrder.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
-                       <p className="text-sm">No tools found matching "{search}"</p>
+                       <p className="text-sm">No tools found matching &quot;{search}&quot;</p>
                        <p className="text-xs opacity-70">Try clearing the search.</p>
                     </div>
                   )}

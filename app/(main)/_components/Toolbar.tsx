@@ -7,25 +7,21 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  KeyboardEvent,
-  ReactNode,
   memo,
+  ReactNode,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Editor } from "@tiptap/react";
 import { toast } from "sonner";
-import { showErrorToast } from "@/components/ui/ErrorToast";
 
 import {
   Bold,
   Italic,
   Underline,
   Link,
-  UploadCloud,
   Image as ImageIcon,
   Smile,
   Palette,
-  Settings,
   Heading1,
   Heading2,
   Heading3,
@@ -36,8 +32,6 @@ import {
   Monitor,
   Code,
 } from "lucide-react";
-
-// Lazy-load Emoji Picker to reduce initial bundle size
 
 import { Button } from "@/components/ui/button";
 import { HelpModal } from "../_components/modals/HelpModal";
@@ -81,25 +75,6 @@ const COLORS = [
   "#ffffff",
 ];
 
-const groupStyle =
-  "flex gap-1 px-1 sm:px-2 py-1 bg-transparent rounded-lg flex-wrap sm:flex-nowrap";
-
-// Animation variants for mobile toolbar groups
-const mobileGroupVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      delay: index * 0.1,
-      duration: 0.3,
-      ease: "easeOut",
-    },
-  }),
-  exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.2 } },
-};
-
 // Reusable toolbar button with tooltip
 interface ToolbarButtonProps {
   label: string;
@@ -130,16 +105,27 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = memo(
           <Button
             aria-label={ariaLabel ?? label}
             aria-pressed={isActive}
-            variant={isActive ? "default" : "ghost"}
+            variant="ghost"
             size="icon"
             type="button"
             disabled={disabled}
             onClick={onClick}
+            className={`
+              relative flex items-center justify-center
+              w-9 h-9 sm:w-10 sm:h-10 rounded-xl
+              transition-all duration-200
+              ${
+                isActive
+                  ? "bg-black/10 dark:bg-white/20 text-black dark:text-white shadow-inner"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white"
+              }
+              active:scale-95
+            `}
           >
-            {children ?? (Icon && <Icon className="w-4 h-4" />)}
+            {children ?? (Icon && <Icon className="w-5 h-5" />)}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
+        <TooltipContent className="tooltip-animate bg-black/80 text-white backdrop-blur-md border-0">{tooltipText}</TooltipContent>
       </Tooltip>
     );
   }
@@ -148,7 +134,6 @@ ToolbarButton.displayName = "ToolbarButton";
 
 type HeadingLevel = 1 | 2 | 3;
 
-// Default order of tools
 const DEFAULT_TOOLBAR_ORDER = [
   "bold",
   "italic",
@@ -183,13 +168,11 @@ const Toolbar: React.FC<ToolbarProps> = memo(
     const isDisabled = disabled || !editor;
     const { theme, setTheme } = useTheme();
 
-    // Ensure we have a valid order list for the modal
     const effectiveOrder =
       toolbarOrder && toolbarOrder.length > 0
         ? toolbarOrder
         : DEFAULT_TOOLBAR_ORDER;
 
-    // State for modals and dropdowns
     const [linkDialogOpen, setLinkDialogOpen] = useState(false);
     const [linkInitialUrl, setLinkInitialUrl] = useState("");
     const [helpModalOpen, setHelpModalOpen] = useState(false);
@@ -199,13 +182,10 @@ const Toolbar: React.FC<ToolbarProps> = memo(
     const [EmojiPickerModule, setEmojiPickerModule] = useState<any>(null);
     const [emojiDataModule, setEmojiDataModule] = useState<any>(null);
 
-    // Refs for dropdown buttons and file input
     const colorBtnRef = useRef<HTMLButtonElement>(null);
     const emojiBtnRef = useRef<HTMLButtonElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
-    // Close dropdowns on outside click
     useDropdownOutsideClick({
       isOpen: colorDropdownOpen,
       buttonRef: colorBtnRef,
@@ -220,7 +200,6 @@ const Toolbar: React.FC<ToolbarProps> = memo(
       onClose: () => setEmojiDropdownOpen(false),
     });
 
-    // Load emoji picker only when the dropdown is opened for the first time
     useEffect(() => {
       let mounted = true;
       if (emojiDropdownOpen && !EmojiPickerModule) {
@@ -230,85 +209,47 @@ const Toolbar: React.FC<ToolbarProps> = memo(
             setEmojiPickerModule(() => pickerMod.default ?? pickerMod);
             setEmojiDataModule(() => dataMod.default ?? dataMod);
           })
-          .catch((err) => console.error("Failed to load emoji picker:", err));
+          .catch(() => {});
       }
       return () => {
         mounted = false;
       };
     }, [emojiDropdownOpen, EmojiPickerModule]);
+    
+    // Default to center for dock style
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [toolbarAlignment, setToolbarAlignment] = useState<'start' | 'center' | 'end'>('center');
 
-    // Helper: safely run editor chain commands
     const runChain = useCallback(
       (fn: (chain: ReturnType<Editor["chain"]>) => void) => {
         if (!editor) return;
         const chain = editor.chain();
         if (!chain) return;
-        try {
-          fn(chain);
-        } catch (error) {
-          console.error("Editor command failed:", error);
-        }
+        try { fn(chain); } catch { }
       },
       [editor]
     );
 
-    // Get attribute safely
     const getAttr = useCallback(
       (name: string) => {
-        try {
-          return editor?.getAttributes(name) ?? {};
-        } catch {
-          return {};
-        }
+        try { return editor?.getAttributes(name) ?? {}; } catch { return {}; }
       },
       [editor]
     );
 
-    // Handle Insert Link button click
     const handleInsertLink = useCallback(() => {
       const href = getAttr("link").href ?? "";
       setLinkInitialUrl(href);
       setLinkDialogOpen(true);
     }, [getAttr]);
 
-    // Handle file import button click
-    const handleFileImport = useCallback(() => {
-      fileInputRef.current?.click();
-    }, []);
+
 
     const handleImageImport = useCallback(() => {
       imageInputRef.current?.click();
     }, []);
 
-    // Handle markdown file upload
-    const handleMarkdownFile = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const text = event.target?.result as string;
-          if (editor?.commands.setContent) {
-            try {
-              editor.commands.setContent(text);
-              toast.success("Markdown file imported successfully");
-            } catch (error) {
-              console.error("Failed to import markdown file:", error);
-              showErrorToast({
-                message: "Import Failed",
-                description:
-                  "Failed to import the markdown file. Please check the file format and try again.",
-                onRetry: () =>
-                  handleMarkdownFile({ target: { files: [file] } } as any),
-              });
-            }
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = ""; // Reset input to allow re-upload same file
-      },
-      [editor]
-    );
+
 
     const handleImageUpload = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,9 +258,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
         const reader = new FileReader();
         reader.onload = (event) => {
           const src = event.target?.result as string;
-          if (editor) {
-            editor.chain().focus().setImage({ src }).run();
-          }
+          if (editor) { editor.chain().focus().setImage({ src }).run(); }
         };
         reader.readAsDataURL(file);
         e.target.value = "";
@@ -327,56 +266,6 @@ const Toolbar: React.FC<ToolbarProps> = memo(
       [editor]
     );
 
-    // Keyboard shortcuts support (Ctrl+B, Ctrl+I, etc.)
-    useEffect(() => {
-      if (!editor) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-          switch (e.key.toLowerCase()) {
-            case "b":
-              e.preventDefault();
-              runChain((c) => c.focus().toggleBold().run());
-              break;
-            case "i":
-              e.preventDefault();
-              runChain((c) => c.focus().toggleItalic().run());
-              break;
-            case "u":
-              e.preventDefault();
-              runChain((c) => c.focus().toggleUnderline().run());
-              break;
-            case "k":
-              e.preventDefault();
-              handleInsertLink();
-              break;
-            case "z":
-              e.preventDefault();
-              runChain((c) => c.focus().undo().run());
-              break;
-            case "y":
-              e.preventDefault();
-              runChain((c) => c.focus().redo().run());
-              break;
-            default:
-              break;
-          }
-        }
-      };
-
-      document.addEventListener(
-        "keydown",
-        handleKeyDown as unknown as EventListener
-      );
-      return () => {
-        document.removeEventListener(
-          "keydown",
-          handleKeyDown as unknown as EventListener
-        );
-      };
-    }, [editor, runChain, handleInsertLink]);
-
-    // Memoized button groups for performance
     const formattingButtons = useMemo(
       () => [
         { Icon: Bold, label: "Bold", command: "toggleBold" },
@@ -386,59 +275,25 @@ const Toolbar: React.FC<ToolbarProps> = memo(
       []
     );
 
-    const headingButtons: {
-      level: HeadingLevel;
-      Icon: React.FC<React.SVGProps<SVGSVGElement>>;
-    }[] = useMemo(
+    const headingButtons = useMemo(
       () => [
-        { level: 1, Icon: Heading1 },
-        { level: 2, Icon: Heading2 },
-        { level: 3, Icon: Heading3 },
+        { level: 1 as HeadingLevel, Icon: Heading1 },
+        { level: 2 as HeadingLevel, Icon: Heading2 },
+        { level: 3 as HeadingLevel, Icon: Heading3 },
       ],
       []
     );
 
-    // Wrap setToolbarOrder to accept updater function or value
-    const handleSetToolbarOrder = useCallback(
-      (order: string[] | ((order: string[]) => string[])) => {
-        if (!onToolbarOrderChange) return;
-        if (typeof order === "function") {
-          onToolbarOrderChange(order(toolbarOrder));
-        } else {
-          onToolbarOrderChange(order);
-        }
-      },
-      [onToolbarOrderChange, toolbarOrder]
-    );
-
-    // Wrap setToolbarVisibility to accept updater function or value
-    const handleSetToolbarVisibility = useCallback(
-      (
-        visibility:
-          | Record<string, boolean>
-          | ((visibility: Record<string, boolean>) => Record<string, boolean>)
-      ) => {
-        if (!onToolbarVisibilityChange) return;
-        if (typeof visibility === "function") {
-          onToolbarVisibilityChange(visibility(toolbarVisibility));
-        } else {
-          onToolbarVisibilityChange(visibility);
-        }
-      },
-      [onToolbarVisibilityChange, toolbarVisibility]
-    );
-
-    // Helper to check visibility
     const isVisible = useCallback(
       (id: string) => {
-        // If visibility map is empty, everything is visible
-        if (!toolbarVisibility || Object.keys(toolbarVisibility).length === 0)
-          return true;
-        // Otherwise, check specific key. Default to true if undefined.
+        if (!toolbarVisibility || Object.keys(toolbarVisibility).length === 0) return true;
         return toolbarVisibility[id] !== false;
       },
       [toolbarVisibility]
     );
+
+    const handleSetToolbarOrder = useCallback((order: any) => onToolbarOrderChange?.(typeof order === "function" ? order(toolbarOrder) : order), [onToolbarOrderChange, toolbarOrder]);
+    const handleSetToolbarVisibility = useCallback((vis: any) => onToolbarVisibilityChange?.(typeof vis === "function" ? vis(toolbarVisibility) : vis), [onToolbarVisibilityChange, toolbarVisibility]);
 
     const toggleTheme = () => {
       if (theme === "light") setTheme("dark");
@@ -447,499 +302,182 @@ const Toolbar: React.FC<ToolbarProps> = memo(
     };
 
     const getThemeIcon = () => {
-      if (theme === "light") return <Sun className="w-4 h-4" />;
-      if (theme === "dark") return <Moon className="w-4 h-4" />;
-      return <Monitor className="w-4 h-4" />;
+      if (theme === "light") return <Sun className="w-5 h-5" />;
+      if (theme === "dark") return <Moon className="w-5 h-5" />;
+      return <Monitor className="w-5 h-5" />;
     };
 
     return (
-      <TooltipProvider>
-        <div
-          role="toolbar"
-          aria-label="Editor toolbar"
-          className="toolbar-wrapper p-2 glass-panel rounded-xl shadow-lg flex gap-1 sm:gap-2 flex-wrap sm:flex-nowrap items-center relative z-10 overflow-x-auto dark:text-white"
+      <TooltipProvider delayDuration={0}>
+        <motion.div
+           initial={{ y: 200, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           transition={{ type: "spring", stiffness: 260, damping: 20 }}
+           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] max-w-[95vw] sm:max-w-fit hidden md:block"
         >
-          {/* Formatting */}
-          <AnimatePresence>
-            <motion.div
-              key="formatting-group"
-              className={`${groupStyle} border-r border-zinc-300 dark:border-zinc-700 pr-2`}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={0}
-            >
-              {formattingButtons.map(({ Icon, label, command }) =>
-                isVisible(label.toLowerCase()) ? (
-                  <ToolbarButton
-                    key={label}
-                    label={label}
-                    icon={Icon}
-                    shortcut={
-                      SHORTCUTS.find((s) => s.label === label)?.shortcut
-                    }
-                    isActive={editor?.isActive(label.toLowerCase()) ?? false}
-                    disabled={isDisabled}
-                    onClick={() =>
-                      runChain((c) => (c.focus() as any)[command]().run())
-                    }
-                  />
-                ) : null
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <div 
+            className="
+              flex items-center gap-1 sm:gap-2 px-3 py-2
+              bg-white/70 dark:bg-black/70 backdrop-blur-2xl
+              border border-white/20 dark:border-white/10
+              rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+              ring-1 ring-black/5 dark:ring-white/5
+              overflow-x-auto overflow-y-hidden
+              scrollbar-hide
+            "
+          >
+              {/* Group: Rich Text */}
+              <div className="flex flex-none items-center gap-1">
+                {formattingButtons.map(({ Icon, label, command }) =>
+                  isVisible(label.toLowerCase()) ? (
+                    <ToolbarButton
+                      key={label}
+                      label={label}
+                      icon={Icon}
+                      shortcut={SHORTCUTS.find((s) => s.label === label)?.shortcut}
+                      isActive={editor?.isActive(label.toLowerCase()) ?? false}
+                      disabled={isDisabled}
+                      onClick={() => runChain((c) => (c.focus() as any)[command]().run())}
+                    />
+                  ) : null
+                )}
+                {isVisible("insert link") && (
+                  <ToolbarButton label="Link" icon={Link} disabled={isDisabled} onClick={handleInsertLink} isActive={editor?.isActive("link")} />
+                )}
+              </div>
 
-          {/* Subscript / Superscript */}
-          <AnimatePresence>
-            <motion.div
-              key="subscript-group"
-              className={`${groupStyle} border-r border-zinc-300 dark:border-zinc-700 pr-2`}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={1}
-            >
-              {isVisible("subscript") && (
-                <ToolbarButton
-                  label="Subscript"
-                  shortcut={
-                    SHORTCUTS.find((s) => s.label === "Subscript")?.shortcut
-                  }
-                  isActive={editor?.isActive("subscript") ?? false}
-                  disabled={isDisabled}
-                  onClick={() =>
-                    runChain((c) => c.focus(undefined).toggleSubscript().run())
-                  }
-                >
-                  <span className="text-xs select-none">Sub</span>
-                </ToolbarButton>
-              )}
+              <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 mx-1 flex-none" />
 
-              {isVisible("superscript") && (
-                <ToolbarButton
-                  label="Superscript"
-                  shortcut={
-                    SHORTCUTS.find((s) => s.label === "Superscript")?.shortcut
-                  }
-                  isActive={editor?.isActive("superscript") ?? false}
-                  disabled={isDisabled}
-                  onClick={() =>
-                    runChain((c) =>
-                      c.focus(undefined).toggleSuperscript().run()
-                    )
-                  }
-                >
-                  <span className="text-xs select-none">Sup</span>
-                </ToolbarButton>
-              )}
-            </motion.div>
-          </AnimatePresence>
+              {/* Group: Headings */}
+              <div className="flex flex-none items-center gap-1">
+                {headingButtons.map(({ level, Icon }) =>
+                  isVisible(`heading ${level}`) ? (
+                    <ToolbarButton
+                      key={`heading-${level}`}
+                      label={`H${level}`}
+                      icon={Icon}
+                      isActive={editor?.isActive("heading", { level }) ?? false}
+                      disabled={isDisabled}
+                      onClick={() => runChain((c) => c.focus(undefined).toggleHeading({ level }).run())}
+                    />
+                  ) : null
+                )}
+              </div>
 
-          {/* Headings */}
-          <AnimatePresence>
-            <motion.div
-              key="headings-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={2}
-            >
-              {headingButtons.map(({ level, Icon }) =>
-                isVisible(`heading ${level}`) ? (
-                  <ToolbarButton
-                    key={`heading-${level}`}
-                    label={`Heading ${level}`}
-                    icon={Icon}
-                    isActive={editor?.isActive("heading", { level }) ?? false}
-                    disabled={isDisabled}
-                    onClick={() =>
-                      runChain((c) =>
-                        c.focus(undefined).toggleHeading({ level }).run()
-                      )
-                    }
-                  />
-                ) : null
-              )}
-            </motion.div>
-          </AnimatePresence>
+              <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 mx-1 flex-none" />
 
-          {/* Link */}
-          <AnimatePresence>
-            <motion.div
-              key="link-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={3}
-            >
-              {isVisible("insert link") && (
-                <>
-                  <ToolbarButton
-                    label="Insert Link"
-                    icon={Link}
-                    disabled={isDisabled}
-                    onClick={handleInsertLink}
-                  />
-                  <LinkDialog
-                    open={linkDialogOpen}
-                    initialUrl={linkInitialUrl}
-                    onClose={() => setLinkDialogOpen(false)}
-                    onSubmit={(url: string) => {
-                      runChain((c) =>
-                        c
-                          .focus(undefined)
-                          .extendMarkRange("link")
-                          .setLink({ href: url })
-                          .run()
-                      );
-                      setLinkDialogOpen(false);
-                    }}
-                  />
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
+              {/* Group: Blocks */}
+              <div className="flex flex-none items-center gap-1">
+                {isVisible("blockquote") && (
+                  <ToolbarButton label="Quote" disabled={isDisabled} isActive={editor?.isActive("blockquote")} onClick={() => runChain((c) => c.focus(undefined).toggleBlockquote().run())}>
+                    <span className="font-serif font-bold text-lg">&quot;</span>
+                  </ToolbarButton>
+                )}
+                {isVisible("code block") && (
+                  <ToolbarButton label="Code" icon={Code} disabled={isDisabled} isActive={editor?.isActive("codeBlock")} onClick={() => runChain((c) => c.focus(undefined).toggleCodeBlock().run())} />
+                )}
+                {/* {isVisible("checklist") && (
+                  <ToolbarButton label="Todo" disabled={isDisabled} isActive={editor?.isActive("taskList")} onClick={() => runChain((c) => c.focus(undefined).toggleTaskList().run())}>
+                    <span className="text-sm">☑</span>
+                  </ToolbarButton>
+                )} */}
+              </div>
 
-          {/* Undo / Redo */}
-          <AnimatePresence>
-            <motion.div
-              key="undo-redo-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={4}
-            >
-              {isVisible("undo") && (
-                <ToolbarButton
-                  label="Undo"
-                  icon={Undo2}
-                  disabled={isDisabled}
-                  onClick={() =>
-                    runChain((c) => c.focus(undefined).undo().run())
-                  }
-                />
-              )}
-              {isVisible("redo") && (
-                <ToolbarButton
-                  label="Redo"
-                  icon={Redo2}
-                  disabled={isDisabled}
-                  onClick={() =>
-                    runChain((c) => c.focus(undefined).redo().run())
-                  }
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+              <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 mx-1 flex-none" />
 
-          {/* Block-level / other actions */}
-          <AnimatePresence>
-            <motion.div
-              key="block-actions-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={5}
-            >
-              {isVisible("blockquote") && (
-                <ToolbarButton
-                  label="Blockquote"
-                  disabled={isDisabled}
-                  isActive={editor?.isActive("blockquote") ?? false}
-                  onClick={() =>
-                    runChain((c) =>
-                      c.focus(undefined).toggleBlockquote().run()
-                    )
-                  }
-                >
-                  <span className="text-sm select-none">❝</span>
-                </ToolbarButton>
-              )}
-
-              {isVisible("code block") && (
-                <ToolbarButton
-                  label="Code Block"
-                  icon={Code}
-                  disabled={isDisabled}
-                  isActive={editor?.isActive("codeBlock") ?? false}
-                  onClick={() =>
-                    runChain((c) => c.focus(undefined).toggleCodeBlock().run())
-                  }
-                />
-              )}
-
-              {/* Divider is not customizable? */}
-              {/* <ToolbarButton label="Divider" disabled onClick={() => {}}>
-                <span className="text-sm select-none">―</span>
-              </ToolbarButton> */}
-
-              {isVisible("checklist") && (
-                <ToolbarButton
-                  label="Checklist"
-                  disabled={isDisabled}
-                  isActive={editor?.isActive("taskList") ?? false}
-                  onClick={() =>
-                    runChain((c) => c.focus(undefined).toggleTaskList().run())
-                  }
-                >
-                  <span className="text-xs select-none">☑</span>
-                </ToolbarButton>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* File Upload */}
-          <AnimatePresence>
-            <motion.div
-              key="file-upload-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={6}
-            >
-              {(isVisible("import markdown") || isVisible("image")) && (
-                <>
-                  {isVisible("import markdown") && (
-                    <>
-                      <ToolbarButton
-                        label="Import Markdown"
-                        icon={UploadCloud}
-                        disabled={isDisabled}
-                        onClick={handleFileImport}
-                      />
-                      <input
-                        type="file"
-                        accept=".md"
-                        hidden
-                        ref={fileInputRef}
-                        onChange={handleMarkdownFile}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                      />
-                    </>
-                  )}
-                  {isVisible("image") && (
-                    <>
-                      <ToolbarButton
-                        label="Insert Image"
-                        icon={ImageIcon}
-                        disabled={isDisabled}
-                        onClick={handleImageImport}
-                      />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        ref={imageInputRef}
-                        onChange={handleImageUpload}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                      />
-                    </>
-                  )}
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Emoji / Color */}
-          <AnimatePresence>
-            <motion.div
-              key="emoji-color-group"
-              className={`${groupStyle} relative`}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={7}
-            >
-              {isVisible("emoji") && (
-                <>
-                  <Button
-                    aria-label="Emoji picker"
-                    aria-haspopup="menu"
-                    aria-expanded={emojiDropdownOpen}
-                    variant="ghost"
-                    size="icon"
-                    ref={emojiBtnRef}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => setEmojiDropdownOpen((open) => !open)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setEmojiDropdownOpen((open) => !open);
-                      }
-                    }}
-                  >
-                    <Smile className="w-4 h-4" />
-                  </Button>
-                  {emojiDropdownOpen && (
-                    <div
-                      id="emoji-dropdown-portal"
-                      className="absolute z-50 mt-2 bg-white dark:bg-zinc-800 border rounded shadow p-1 max-w-xs max-h-64 overflow-auto"
-                      style={{ top: "100%", left: 0 }}
-                      role="menu"
-                      aria-label="Emoji picker"
+              {/* Group: Assets */}
+              <div className="flex flex-none items-center gap-1">
+                {isVisible("image") && <ToolbarButton label="Image" icon={ImageIcon} disabled={isDisabled} onClick={handleImageImport} />}
+                <input type="file" accept="image/*" hidden ref={imageInputRef} onChange={handleImageUpload} />
+                
+                {isVisible("emoji") && (
+                  <div className="relative">
+                    <Button variant="ghost" size="icon" ref={emojiBtnRef} disabled={isDisabled} onClick={() => setEmojiDropdownOpen(!emojiDropdownOpen)} 
+                      className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
                     >
-                      {EmojiPickerModule ? (
-                        <EmojiPickerModule
-                          data={emojiDataModule}
-                          onEmojiSelect={(emoji: { native?: string }) => {
-                            runChain((c) =>
-                              c
-                                .focus(undefined)
-                                .insertContent(emoji.native ?? "")
-                                .run()
-                            );
-                            setEmojiDropdownOpen(false);
-                          }}
-                          theme="light"
-                        />
-                      ) : (
-                        <div className="p-4 text-sm">Loading emojis…</div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
+                      <Smile className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    </Button>
+                    <AnimatePresence>
+                    {emojiDropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        id="emoji-dropdown-portal" 
+                        className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 p-2 bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-white/10 z-[10000]"
+                      >
+                        {EmojiPickerModule ? (
+                          <EmojiPickerModule
+                            data={emojiDataModule}
+                            onEmojiSelect={(emoji: any) => {
+                              runChain((c) => c.focus(undefined).insertContent(emoji.native).run());
+                              setEmojiDropdownOpen(false);
+                            }}
+                            theme={theme === 'dark' ? 'dark' : 'light'}
+                          />
+                        ) : (
+                          <div className="p-4 text-xs font-semibold">Loading Emojis...</div>
+                        )}
+                      </motion.div>
+                    )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
 
-              {isVisible("text color") && (
-                <>
-                  <Button
-                    aria-label="Text color picker"
-                    aria-haspopup="menu"
-                    aria-expanded={colorDropdownOpen}
-                    variant="ghost"
-                    size="icon"
-                    ref={colorBtnRef}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => setColorDropdownOpen((open) => !open)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setColorDropdownOpen((open) => !open);
-                      }
-                    }}
-                  >
-                    <Palette className="w-4 h-4" />
-                  </Button>
-                  {colorDropdownOpen && (
-                    <div
-                      id="color-dropdown-portal"
-                      className="absolute z-50 mt-2 p-2 bg-white dark:bg-zinc-800 border rounded shadow flex gap-1"
-                      role="menu"
-                      aria-label="Text color picker"
+              <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 mx-1 flex-none" />
+
+              {/* Group: History & Color */}
+              <div className="flex flex-none items-center gap-1">
+                {isVisible("undo") && <ToolbarButton label="Undo" icon={Undo2} disabled={isDisabled} onClick={() => runChain((c) => c.focus(undefined).undo().run())} />}
+                {isVisible("redo") && <ToolbarButton label="Redo" icon={Redo2} disabled={isDisabled} onClick={() => runChain((c) => c.focus(undefined).redo().run())} />}
+                {isVisible("text color") && (
+                  <div className="relative">
+                    <Button variant="ghost" size="icon" ref={colorBtnRef} disabled={isDisabled} onClick={() => setColorDropdownOpen(!colorDropdownOpen)} 
+                       className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
                     >
-                      {COLORS.map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => {
-                            runChain((c) =>
-                              c.focus(undefined).setColor(color).run()
-                            );
-                            setColorDropdownOpen(false);
-                          }}
-                          style={{ backgroundColor: color }}
-                          className="w-5 h-5 rounded-full border border-black/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500"
-                          aria-label={`Set text color to ${color}`}
-                          type="button"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
+                      <Palette className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    </Button>
+                    <AnimatePresence>
+                    {colorDropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        id="color-dropdown-portal" 
+                        className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 p-3 flex gap-2 flex-wrap w-[184px] bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-white/10 z-[10000]"
+                      >
+                        {COLORS.map((color) => (
+                           <button key={color} onClick={() => { runChain((c) => c.focus(undefined).setColor(color).run()); setColorDropdownOpen(false); }} style={{ backgroundColor: color }} className="w-6 h-6 rounded-full border border-black/10 hover:scale-110 transition-transform shadow-sm" />
+                        ))}
+                      </motion.div>
+                    )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
 
-          {/* Settings & Help */}
-          <AnimatePresence>
-            <motion.div
-              key="settings-group"
-              className={groupStyle}
-              variants={mobileGroupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              custom={8}
-            >
-              {isVisible("help") && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    disabled={isDisabled}
-                    aria-label="Help"
-                    onClick={() => setHelpModalOpen(true)}
-                  >
-                    ?
-                  </Button>
-                  <HelpModal
-                    editor={editor}
-                    open={helpModalOpen}
-                    onClose={() => setHelpModalOpen(false)}
-                    SHORTCUTS={SHORTCUTS}
-                  />
-                </>
-              )}
-              {/* Settings and Theme are always visible as they control the customization itself */}
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                disabled={isDisabled}
-                aria-label="Customize toolbar"
-                onClick={() => setCustomizeModalOpen(true)}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              <CustomizeModal
-                open={customizeModalOpen}
-                onClose={() => setCustomizeModalOpen(false)}
-                toolbarOrder={effectiveOrder}
-                setToolbarOrder={handleSetToolbarOrder}
-                toolbarVisibility={toolbarVisibility}
-                setToolbarVisibility={handleSetToolbarVisibility}
-                resetToolbarOrder={() => onToolbarOrderChange?.(DEFAULT_TOOLBAR_ORDER)}
-                resetToolbarVisibility={() => onToolbarVisibilityChange?.({})}
-                toast={toast}
-                editor={editor}
-              />
-              {isVisible("theme") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="button"
-                  aria-label={`Switch to ${theme === "light" ? "dark" : theme === "dark" ? "system" : "light"} theme`}
-                  onClick={toggleTheme}
-                >
-                  {getThemeIcon()}
-                </Button>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              <div className="w-[1px] h-6 bg-black/10 dark:bg-white/10 mx-1 flex-none" />
+
+              {/* Group: System */}
+              <div className="flex flex-none items-center gap-1">
+                {/* <ToolbarButton label="Align" onClick={() => handleAlignmentChange(toolbarAlignment === 'start' ? 'center' : toolbarAlignment === 'center' ? 'end' : 'start')}>
+                  {getAlignmentIcon()}
+                </ToolbarButton> */}
+                {/* <ToolbarButton label="Settings" icon={Settings} onClick={() => setCustomizeModalOpen(true)} /> */}
+                {isVisible("theme") && <ToolbarButton label="Theme" onClick={toggleTheme}>{getThemeIcon()}</ToolbarButton>}
+                
+              </div>
+          </div>
+        </motion.div>
+
+        <LinkDialog open={linkDialogOpen} initialUrl={linkInitialUrl} onClose={() => setLinkDialogOpen(false)} onSubmit={(url: string) => { runChain((c) => c.focus(undefined).extendMarkRange("link").setLink({ href: url }).run()); setLinkDialogOpen(false); }} />
+        <CustomizeModal open={customizeModalOpen} onClose={() => setCustomizeModalOpen(false)} toolbarOrder={effectiveOrder} setToolbarOrder={handleSetToolbarOrder} toolbarVisibility={toolbarVisibility} setToolbarVisibility={handleSetToolbarVisibility} resetToolbarOrder={() => onToolbarOrderChange?.(DEFAULT_TOOLBAR_ORDER)} resetToolbarVisibility={() => onToolbarVisibilityChange?.({})} toast={toast} editor={editor} />
+        <HelpModal editor={editor} open={helpModalOpen} onClose={() => setHelpModalOpen(false)} SHORTCUTS={SHORTCUTS} />
       </TooltipProvider>
     );
   }
-
 );
 
 Toolbar.displayName = "Toolbar";
-
 export default Toolbar;
