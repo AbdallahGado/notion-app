@@ -1,7 +1,6 @@
 "use client";
 
-import { BubbleMenu } from "@tiptap/react/menus";
-import { Editor } from "@tiptap/react";
+import { BubbleMenu, Editor } from "@tiptap/react";
 import { 
   Bold, 
   Italic, 
