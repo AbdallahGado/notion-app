@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { jest } from "@jest/globals";
 import Toolbar from "../../Toolbar";
-import { Editor } from "@tiptap/react";
+import { EditorLike } from "@/types/editor";
 
 // Mock dependencies
 jest.mock("@/components/ui/button", () => ({
@@ -64,7 +64,7 @@ const mockEditor = {
   commands: {
     setContent: jest.fn(),
   },
-} as unknown as Editor;
+} as unknown as EditorLike;
 
 describe("Toolbar", () => {
   const defaultProps = {

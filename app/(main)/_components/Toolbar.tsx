@@ -11,7 +11,7 @@ import React, {
   ReactNode,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Editor } from "@tiptap/react";
+import type { EditorLike as Editor } from "@/types/editor";
 import { toast } from "sonner";
 
 import {
@@ -33,7 +33,7 @@ import {
   Code,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+
 import { HelpModal } from "../_components/modals/HelpModal";
 import { CustomizeModal } from "../_components/modals/CustomizeModal";
 import { LinkDialog } from "../_components/modals/LinkDialog";
@@ -102,11 +102,9 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = memo(
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
+          <button
             aria-label={ariaLabel ?? label}
             aria-pressed={isActive}
-            variant="ghost"
-            size="icon"
             type="button"
             disabled={disabled}
             onClick={onClick}
@@ -123,7 +121,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = memo(
             `}
           >
             {children ?? (Icon && <Icon className="w-5 h-5" />)}
-          </Button>
+          </button>
         </TooltipTrigger>
         <TooltipContent className="tooltip-animate bg-black/80 text-white backdrop-blur-md border-0">{tooltipText}</TooltipContent>
       </Tooltip>
@@ -215,7 +213,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
         mounted = false;
       };
     }, [emojiDropdownOpen, EmojiPickerModule]);
-    
+
     // Default to center for dock style
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [toolbarAlignment, setToolbarAlignment] = useState<'start' | 'center' | 'end'>('center');
@@ -238,18 +236,14 @@ const Toolbar: React.FC<ToolbarProps> = memo(
     );
 
     const handleInsertLink = useCallback(() => {
-      const href = getAttr("link").href ?? "";
+      const href = (getAttr("link") as any)?.href ?? "";
       setLinkInitialUrl(href);
       setLinkDialogOpen(true);
     }, [getAttr]);
 
-
-
     const handleImageImport = useCallback(() => {
       imageInputRef.current?.click();
     }, []);
-
-
 
     const handleImageUpload = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -258,7 +252,10 @@ const Toolbar: React.FC<ToolbarProps> = memo(
         const reader = new FileReader();
         reader.onload = (event) => {
           const src = event.target?.result as string;
-          if (editor) { editor.chain().focus().setImage({ src }).run(); }
+          if (editor) {
+            const chain = editor.chain();
+            if (chain) { (chain.focus() as any).insertContent(`<img src="${src}" />`).run(); }
+          }
         };
         reader.readAsDataURL(file);
         e.target.value = "";
@@ -315,7 +312,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
            transition={{ type: "spring", stiffness: 260, damping: 20 }}
            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] max-w-[95vw] sm:max-w-fit hidden md:block"
         >
-          <div 
+          <div
             className="
               flex items-center gap-1 sm:gap-2 px-3 py-2
               bg-white/70 dark:bg-black/70 backdrop-blur-2xl
@@ -358,7 +355,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
                       icon={Icon}
                       isActive={editor?.isActive("heading", { level }) ?? false}
                       disabled={isDisabled}
-                      onClick={() => runChain((c) => c.focus(undefined).toggleHeading({ level }).run())}
+                      onClick={() => runChain((c) => (c.focus() as any).toggleHeading({ level }).run())}
                     />
                   ) : null
                 )}
@@ -369,15 +366,15 @@ const Toolbar: React.FC<ToolbarProps> = memo(
               {/* Group: Blocks */}
               <div className="flex flex-none items-center gap-1">
                 {isVisible("blockquote") && (
-                  <ToolbarButton label="Quote" disabled={isDisabled} isActive={editor?.isActive("blockquote")} onClick={() => runChain((c) => c.focus(undefined).toggleBlockquote().run())}>
+                  <ToolbarButton label="Quote" disabled={isDisabled} isActive={editor?.isActive("blockquote")} onClick={() => runChain((c) => (c.focus() as any).toggleBlockquote().run())}>
                     <span className="font-serif font-bold text-lg">&quot;</span>
                   </ToolbarButton>
                 )}
                 {isVisible("code block") && (
-                  <ToolbarButton label="Code" icon={Code} disabled={isDisabled} isActive={editor?.isActive("codeBlock")} onClick={() => runChain((c) => c.focus(undefined).toggleCodeBlock().run())} />
+                  <ToolbarButton label="Code" icon={Code} disabled={isDisabled} isActive={editor?.isActive("codeBlock")} onClick={() => runChain((c) => (c.focus() as any).toggleCodeBlock().run())} />
                 )}
                 {/* {isVisible("checklist") && (
-                  <ToolbarButton label="Todo" disabled={isDisabled} isActive={editor?.isActive("taskList")} onClick={() => runChain((c) => c.focus(undefined).toggleTaskList().run())}>
+                  <ToolbarButton label="Todo" disabled={isDisabled} isActive={editor?.isActive("taskList")} onClick={() => runChain((c) => c.focus().toggleTaskList().run())}>
                     <span className="text-sm">☑</span>
                   </ToolbarButton>
                 )} */}
@@ -392,11 +389,11 @@ const Toolbar: React.FC<ToolbarProps> = memo(
                 
                 {isVisible("emoji") && (
                   <div className="relative">
-                    <Button variant="ghost" size="icon" ref={emojiBtnRef} disabled={isDisabled} onClick={() => setEmojiDropdownOpen(!emojiDropdownOpen)} 
-                      className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
+                    <button ref={emojiBtnRef} disabled={isDisabled} onClick={() => setEmojiDropdownOpen(!emojiDropdownOpen)}
+                      className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400"
                     >
-                      <Smile className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    </Button>
+                      <Smile className="w-5 h-5" />
+                    </button>
                     <AnimatePresence>
                     {emojiDropdownOpen && (
                       <motion.div 
@@ -410,7 +407,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
                           <EmojiPickerModule
                             data={emojiDataModule}
                             onEmojiSelect={(emoji: any) => {
-                              runChain((c) => c.focus(undefined).insertContent(emoji.native).run());
+                              runChain((c) => (c.focus() as any).insertContent(emoji.native).run());
                               setEmojiDropdownOpen(false);
                             }}
                             theme={theme === 'dark' ? 'dark' : 'light'}
@@ -429,15 +426,15 @@ const Toolbar: React.FC<ToolbarProps> = memo(
 
               {/* Group: History & Color */}
               <div className="flex flex-none items-center gap-1">
-                {isVisible("undo") && <ToolbarButton label="Undo" icon={Undo2} disabled={isDisabled} onClick={() => runChain((c) => c.focus(undefined).undo().run())} />}
-                {isVisible("redo") && <ToolbarButton label="Redo" icon={Redo2} disabled={isDisabled} onClick={() => runChain((c) => c.focus(undefined).redo().run())} />}
+                {isVisible("undo") && <ToolbarButton label="Undo" icon={Undo2} disabled={isDisabled} onClick={() => runChain((c) => (c.focus() as any).undo().run())} />}
+                {isVisible("redo") && <ToolbarButton label="Redo" icon={Redo2} disabled={isDisabled} onClick={() => runChain((c) => (c.focus() as any).redo().run())} />}
                 {isVisible("text color") && (
                   <div className="relative">
-                    <Button variant="ghost" size="icon" ref={colorBtnRef} disabled={isDisabled} onClick={() => setColorDropdownOpen(!colorDropdownOpen)} 
-                       className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
+                    <button ref={colorBtnRef} disabled={isDisabled} onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
+                       className="w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400"
                     >
-                      <Palette className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    </Button>
+                      <Palette className="w-5 h-5" />
+                    </button>
                     <AnimatePresence>
                     {colorDropdownOpen && (
                       <motion.div 
@@ -448,7 +445,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
                         className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 p-3 flex gap-2 flex-wrap w-[184px] bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-white/10 z-[10000]"
                       >
                         {COLORS.map((color) => (
-                           <button key={color} onClick={() => { runChain((c) => c.focus(undefined).setColor(color).run()); setColorDropdownOpen(false); }} style={{ backgroundColor: color }} className="w-6 h-6 rounded-full border border-black/10 hover:scale-110 transition-transform shadow-sm" />
+                           <button key={color} onClick={() => { runChain((c) => (c.focus() as any).setColor(color).run()); setColorDropdownOpen(false); }} style={{ backgroundColor: color }} className="w-6 h-6 rounded-full border border-black/10 hover:scale-110 transition-transform shadow-sm" />
                         ))}
                       </motion.div>
                     )}
@@ -471,7 +468,7 @@ const Toolbar: React.FC<ToolbarProps> = memo(
           </div>
         </motion.div>
 
-        <LinkDialog open={linkDialogOpen} initialUrl={linkInitialUrl} onClose={() => setLinkDialogOpen(false)} onSubmit={(url: string) => { runChain((c) => c.focus(undefined).extendMarkRange("link").setLink({ href: url }).run()); setLinkDialogOpen(false); }} />
+        <LinkDialog open={linkDialogOpen} initialUrl={linkInitialUrl} onClose={() => setLinkDialogOpen(false)} onSubmit={(url: string) => { runChain((c) => (c.focus() as any).extendMarkRange("link").setLink({ href: url }).run()); setLinkDialogOpen(false); }} />
         <CustomizeModal open={customizeModalOpen} onClose={() => setCustomizeModalOpen(false)} toolbarOrder={effectiveOrder} setToolbarOrder={handleSetToolbarOrder} toolbarVisibility={toolbarVisibility} setToolbarVisibility={handleSetToolbarVisibility} resetToolbarOrder={() => onToolbarOrderChange?.(DEFAULT_TOOLBAR_ORDER)} resetToolbarVisibility={() => onToolbarVisibilityChange?.({})} toast={toast} editor={editor} />
         <HelpModal editor={editor} open={helpModalOpen} onClose={() => setHelpModalOpen(false)} SHORTCUTS={SHORTCUTS} />
       </TooltipProvider>
