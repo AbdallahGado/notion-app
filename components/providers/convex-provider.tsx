@@ -5,9 +5,13 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
 export const ConvexClintProvider = ({ children }: { children: ReactNode }) => {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+    return <>{children}</>;
+  }
+
+  const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
