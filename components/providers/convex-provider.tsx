@@ -6,11 +6,8 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 
 export const ConvexClintProvider = ({ children }: { children: ReactNode }) => {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "https://sleek-cardinal-969.convex.cloud";
   const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-  console.log("Convex URL:", convexUrl);
-  console.log("Clerk Key:", clerkKey ? "Set" : "Not set");
 
   if (!clerkKey || clerkKey === "dummy") {
     throw new Error(
@@ -19,8 +16,7 @@ export const ConvexClintProvider = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  if (!convexUrl || convexUrl === "https://dummy.convex.cloud") {
-    console.error("Convex URL is missing or dummy:", convexUrl);
+  if (!convexUrl) {
     throw new Error(
       "Convex URL is not set. Please add NEXT_PUBLIC_CONVEX_URL to your .env.local file. " +
       "Get your URL from https://dashboard.convex.dev or run `npx convex dev` to set it automatically."
