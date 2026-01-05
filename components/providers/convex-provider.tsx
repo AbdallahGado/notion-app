@@ -16,7 +16,14 @@ export const ConvexClintProvider = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  const convex = convexUrl ? new ConvexReactClient(convexUrl) : new ConvexReactClient("https://dummy.convex.cloud");
+  if (!convexUrl || convexUrl === "https://dummy.convex.cloud") {
+    throw new Error(
+      "Convex URL is not set. Please add NEXT_PUBLIC_CONVEX_URL to your .env.local file. " +
+      "Get your URL from https://dashboard.convex.dev or run `npx convex dev` to set it automatically."
+    );
+  }
+
+  const convex = new ConvexReactClient(convexUrl);
 
   return (
     <ClerkProvider
