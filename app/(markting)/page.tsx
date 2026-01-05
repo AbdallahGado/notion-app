@@ -1,11 +1,13 @@
 "use client";
 
-import { 
-  ArrowRight, 
-  Zap, 
-  Command, 
-  Hexagon, 
-  Activity, 
+export const dynamic = 'force-dynamic';
+
+import {
+  ArrowRight,
+  Zap,
+  Command,
+  Hexagon,
+  Activity,
   Globe,
   Layout,
   Users,
