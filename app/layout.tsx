@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import "./globals.css";
 import { Toaster } from "sonner";
 import type { Metadata } from "next";
