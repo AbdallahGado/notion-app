@@ -194,12 +194,20 @@ const TitleDisplay = React.memo(
       />
     ) : (
       <div className="flex items-center gap-1 min-w-0 flex-1">
-        <Link
-          href={`/documents/${doc._id}`}
-          className="truncate flex-1 text-lg font-medium text-indigo-600 dark:text-indigo-300 hover:underline"
-        >
-          {doc.title || "Untitled"}
-        </Link>
+        {doc.isFolder ? (
+           <span
+             className="truncate flex-1 text-lg font-medium text-slate-800 dark:text-slate-200 cursor-default"
+           >
+             {doc.title || "Untitled Folder"}
+           </span>
+        ) : (
+          <Link
+            href={`/documents/${doc._id}`}
+            className="truncate flex-1 text-lg font-medium text-indigo-600 dark:text-indigo-300 hover:underline"
+          >
+            {doc.title || "Untitled"}
+          </Link>
+        )}
       </div>
     )
 );
@@ -246,6 +254,19 @@ const SortableItem: React.FC<SortableItemProps> = React.memo(({
   };
   const hasChildren = doc.children && doc.children.length > 0;
 
+  // Optimistic update for starred state
+  const [isStarred, setIsStarred] = React.useState(doc.starred);
+
+  React.useEffect(() => {
+    setIsStarred(doc.starred);
+  }, [doc.starred]);
+
+  const handleToggleStar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsStarred(!isStarred);
+    toggleStarred({ id: doc._id });
+  };
+
   return (
     <motion.li
       ref={setNodeRef}
@@ -259,6 +280,12 @@ const SortableItem: React.FC<SortableItemProps> = React.memo(({
         className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer border border-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200 group ${
           isDragging ? "shadow-lg bg-white dark:bg-slate-800 scale-[1.02]" : ""
         }`}
+        onClick={(e) => {
+            if (doc.isFolder) {
+                // Prevent routing or other side effects if it's a folder
+                setExpanded((prev) => ({ ...prev, [doc._id]: !prev[doc._id] }));
+            }
+        }}
         onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => {
           e.preventDefault();
           setContextMenu({ x: e.clientX, y: e.clientY, doc });
@@ -307,12 +334,12 @@ const SortableItem: React.FC<SortableItemProps> = React.memo(({
         
         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
             <button
-            onClick={() => toggleStarred({ id: doc._id })}
+            onClick={handleToggleStar}
             className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10"
-            aria-label={doc.starred ? "Unstar note" : "Star note"}
+            aria-label={isStarred ? "Unstar note" : "Star note"}
             >
             <Star
-                className={`h-4 w-4 ${doc.starred ? "fill-amber-400 text-amber-400" : "text-slate-400"}`}
+                className={`h-4 w-4 ${isStarred ? "fill-amber-400 text-amber-400" : "text-slate-400"}`}
             />
             </button>
             <ActionsDropdown

@@ -68,7 +68,7 @@ const StarredSidebar = memo(function StarredSidebar({
   starredDocs: Doc<"documents">[];
 }) {
   return (
-    <aside className="w-64 shrink-0 bg-white/15 dark:bg-slate-900/30 backdrop-blur-2xl border-l border-white/30 dark:border-slate-700/40 overflow-y-auto">
+    <aside className="w-64 shrink-0 bg-gray-50/50 dark:bg-[#1F1F1F] backdrop-blur-2xl border-l border-white/30 dark:border-white/5 overflow-y-auto">
       <div className="p-6 border-b border-white/30 dark:border-slate-700/40">
         <h3 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
           Quick Access
@@ -127,7 +127,7 @@ const DocumentsPage = memo(function DocumentsPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-
+  const [moveDropdown, setMoveDropdown] = useState<string | null>(null);
   /* ------------------------------ DnD setup ------------------------------- */
 
   const sensors = useSensors(
@@ -239,7 +239,70 @@ const DocumentsPage = memo(function DocumentsPage() {
     [editValue, update]
   );
 
-  /* ------------------------------ Drag end ------------------------------- */
+  const handleMoveTo = useCallback(
+    async (docId: string, parentId: string | undefined) => {
+       try {
+         await update({
+           id: docId as Id<"documents">,
+           parentDocument: parentId as Id<"documents"> | undefined,
+         });
+         toast.success("Moved");
+         setMoveDropdown(null);
+       } catch {
+         showErrorToast({ message: "Move failed" });
+       }
+    },
+    [update]
+  );
+
+  /* ------------------------------ Tree Renderer -------------------------- */
+
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // Memoize all folders for the dropdown
+  const allFolders = useMemo(() => {
+     return Array.from(treeData.map.values()).filter(doc => doc.isFolder);
+  }, [treeData.map]);
+
+  const renderTree = useCallback((nodes: TreeNode[], level: number, tree: TreeNode[]) => {
+      const nodeIds = nodes.map(n => n._id);
+      return (
+          <SortableContext items={nodeIds} strategy={verticalListSortingStrategy}>
+              <ul className="space-y-1">
+                  {nodes.map(node => (
+                      <SortableItem
+                          key={node._id}
+                          doc={node}
+                          level={level}
+                          tree={tree}
+                          expanded={expanded}
+                          setExpanded={setExpanded}
+                          editingId={editingId}
+                          editValue={editValue}
+                          setEditValue={setEditValue}
+                          setEditingId={setEditingId}
+                          handleRename={(id: string, title: string) => {
+                              setEditingId(id);
+                              setEditValue(title);
+                          }}
+                          handleRenameSave={handleRenameSave}
+                          toggleStarred={({ id }: { id: string }) =>
+                              toggleStarred({ id: id as Id<"documents"> })
+                          }
+                          setContextMenu={() => {}}
+                          moveDropdown={moveDropdown}
+                          setMoveDropdown={setMoveDropdown}
+                          handleMoveTo={handleMoveTo}
+                          allFolders={allFolders}
+                          renderTree={renderTree}
+                          handleDelete={handleDelete}
+                      />
+                  ))}
+              </ul>
+          </SortableContext>
+      );
+  }, [expanded, editingId, editValue, moveDropdown, handleRenameSave, toggleStarred, handleMoveTo, handleDelete, treeData.tree, allFolders]);
+
 
   const handleDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {
@@ -332,7 +395,7 @@ const DocumentsPage = memo(function DocumentsPage() {
                 items={filteredTree.map((n) => n._id)}
                 strategy={verticalListSortingStrategy}
                 >
-                <ul className="space-y-1">
+                 <ul className="space-y-1">
                     {filteredTree.length === 0 ? (
                         <div className="py-20 text-center">
                              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-4">
@@ -348,8 +411,8 @@ const DocumentsPage = memo(function DocumentsPage() {
                             doc={doc}
                             level={0}
                             tree={treeData.tree}
-                            expanded={{}}
-                            setExpanded={() => {}}
+                            expanded={expanded}
+                            setExpanded={setExpanded}
                             editingId={editingId}
                             editValue={editValue}
                             setEditValue={setEditValue}
@@ -360,11 +423,11 @@ const DocumentsPage = memo(function DocumentsPage() {
                             }}
                             handleRenameSave={handleRenameSave}
                             setContextMenu={() => {}}
-                            moveDropdown={null}
-                            setMoveDropdown={() => {}}
-                            handleMoveTo={() => {}}
-                            allFolders={[]}
-                            renderTree={() => null}
+                            moveDropdown={moveDropdown}
+                            setMoveDropdown={setMoveDropdown}
+                            handleMoveTo={handleMoveTo}
+                            allFolders={allFolders}
+                            renderTree={renderTree}
                             handleDelete={handleDelete}
                             toggleStarred={({ id }: { id: string }) =>
                             toggleStarred({ id: id as Id<"documents"> })
