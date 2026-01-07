@@ -3,16 +3,21 @@
 import React from "react";
 import { 
   Menu, PanelLeftClose, PanelLeftOpen, FileText, Search, Download, FileCode, FileJson, 
-  MoreHorizontal, Keyboard, Printer 
+  MoreHorizontal, Keyboard, Printer, Settings, Layout, Scale, Type, MoveHorizontal, MoveVertical 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { Toolbar as PageToolbar } from "@/components/Toolbar";
 import { cn } from "@/lib/utils";
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+import { Check } from "lucide-react";
 
 interface DocumentHeaderProps {
   doc: Doc<"documents">;
@@ -28,6 +33,14 @@ interface DocumentHeaderProps {
   onExportMarkdown: () => void;
   onExportPDF: () => void;
   tocItemsCount: number;
+  onFormatChange: (format: string | undefined) => void;
+  onBorderToggle: () => void;
+  font: string;
+  margin: string;
+  onFontChange: (font: string) => void;
+  onMarginChange: (margin: string) => void;
+  lineHeight: string;
+  onLineHeightChange: (height: string) => void;
 }
 
 export const DocumentHeader = ({
@@ -44,7 +57,16 @@ export const DocumentHeader = ({
   onExportMarkdown,
   onExportPDF,
   tocItemsCount,
+  onFormatChange,
+  onBorderToggle,
+  font = "default",
+  margin = "standard",
+  onFontChange,
+  onMarginChange,
+  lineHeight = "normal",
+  onLineHeightChange,
 }: DocumentHeaderProps) => {
+
   return (
     <div className="z-50 w-full bg-white/60 dark:bg-[#0b0c14]/60 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-all duration-500 h-14 md:h-16 flex items-center shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04),0_10px_20px_-2px_rgba(0,0,0,0.02)]">
       <div className="w-full px-4 md:px-6 flex items-center justify-between gap-4">
@@ -156,6 +178,166 @@ export const DocumentHeader = ({
               <DropdownMenuItem onClick={() => window.dispatchEvent(new CustomEvent("openKeyboardShortcuts"))} className="rounded-lg">
                 <Keyboard className="w-4 h-4 mr-2" /> Shortcuts
               </DropdownMenuItem>
+              
+              <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
+              
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Layout className="w-4 h-4 mr-2 text-zinc-500" />    
+                  <span>Page Setup</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent className="w-64 p-2 glass-panel animate-in slide-in-from-left-1 zoom-in-95 duration-200">
+                   
+                   {/* Format Section */}
+                   <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Format</div>
+                   <div className="grid grid-cols-2 gap-1 mb-2">
+                     {["A4", "A5", "Letter", "Full"].map((format) => {
+                       const value = format === "Full" ? undefined : format;
+                       const label = format === "Full" ? "Full Width" : format;
+                       const isActive = format === "Full" ? !doc.format : doc.format === value;
+                       
+                       return (
+                        <DropdownMenuItem 
+                          key={format}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            onFormatChange(value);
+                          }}
+                           className={cn(
+                             "relative flex flex-col items-center justify-center p-2 rounded-md cursor-pointer transition-all border border-transparent",
+                             isActive 
+                              ? "bg-indigo-50 dark:bg-indigo-500/20 border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300" 
+                              : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                           )}
+                        >
+                         <div className={cn(
+                           "w-6 h-8 border-2 mb-1.5 rounded-[2px] bg-white dark:bg-zinc-900 transition-all",
+                           isActive ? "border-indigo-500 dark:border-indigo-400" : "border-zinc-300 dark:border-zinc-700 group-hover:border-zinc-400",
+                           format === "Full" && "w-10",
+                           format === "A5" && "h-6 w-5"
+                         )} />
+                         <span className="text-[10px] font-medium">{label}</span>
+                         {isActive && <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />}
+                        </DropdownMenuItem>
+                       );
+                     })}
+                   </div>
+
+                    <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800 my-2" />
+
+                    {/* Typography Section */}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Typography</div>
+                    <div className="flex flex-col gap-1">
+                    {["Default", "Serif", "Mono"].map((f) => (
+                      <DropdownMenuItem 
+                        key={f}
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          onFontChange(f.toLowerCase());
+                        }}
+                        className={cn(
+                          "rounded-md justify-between cursor-pointer py-2 px-3 focus:bg-zinc-100 dark:focus:bg-zinc-800",
+                          font === f.toLowerCase() ? "bg-zinc-100 dark:bg-zinc-800/50" : ""
+                        )}
+                      >
+                        <div className="flex items-center">
+                          <span className={cn(
+                            "w-6 flex justify-center text-zinc-500 dark:text-zinc-400 mr-2",
+                            f === "Serif" && "font-serif",
+                            f === "Mono" && "font-mono",
+                          )}>Aa</span>
+                          <span className={cn(
+                            "text-sm",
+                            f === "Serif" && "font-serif",
+                            f === "Mono" && "font-mono",
+                            "text-zinc-700 dark:text-zinc-200"
+                          )}>{f}</span>
+                        </div>
+                        {font === f.toLowerCase() && <Check className="w-4 h-4 text-indigo-500" />}
+                      </DropdownMenuItem>
+                    ))}
+                    </div>
+
+                    <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800 my-2" />
+
+                    {/* Spacing & Margins Grid */}
+                    <div className="grid grid-cols-2 gap-4 px-1">
+                      <div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Margins</div>
+                        <div className="flex flex-col gap-1">
+                          {["Standard", "Wide", "Narrow"].map((m) => {
+                            const icons = { Standard: "||", Wide: "| |", Narrow: "|||" };
+                            return (
+                              <DropdownMenuItem 
+                                key={m}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  onMarginChange(m.toLowerCase());
+                                }}
+                                className={cn(
+                                  "rounded-md justify-between cursor-pointer py-1.5 px-2 text-xs",
+                                  margin === m.toLowerCase() ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10" : "text-zinc-600 dark:text-zinc-400"
+                                )}
+                              >
+                                <span>{m}</span>
+                                {margin === m.toLowerCase() && <Check className="w-3 h-3" />}
+                              </DropdownMenuItem>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Spacing</div>
+                        <div className="flex flex-col gap-1">
+                          {[{l:"Tight",v:"tight"}, {l:"Normal",v:"normal"}, {l:"Loose",v:"loose"}].map(({l,v}) => (
+                            <DropdownMenuItem 
+                              key={v}
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                onLineHeightChange(v);
+                              }}
+                              className={cn(
+                                "rounded-md justify-between cursor-pointer py-1.5 px-2 text-xs",
+                                lineHeight === v ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10" : "text-zinc-600 dark:text-zinc-400"
+                              )}
+                            >
+                              <span>{l}</span>
+                              {lineHeight === v && <Check className="w-3 h-3" />}
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800 my-2" />
+                    
+                     <DropdownMenuItem 
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          onBorderToggle();
+                        }}
+                        className="rounded-md justify-between cursor-pointer py-2 px-3 focus:bg-zinc-100 dark:focus:bg-zinc-800"
+                      >
+                      <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                        <Scale className="w-4 h-4 mr-2 text-zinc-500 dark:text-zinc-400" />
+                        Show Page Border
+                      </div>
+                       <div className={cn(
+                         "w-8 h-4 rounded-full transition-colors relative",
+                         doc.hasBorder ? "bg-indigo-500" : "bg-zinc-300 dark:bg-zinc-600"
+                       )}>
+                         <div className={cn(
+                           "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all shadow-sm",
+                           doc.hasBorder ? "left-4.5" : "left-0.5"
+                         )} style={{ left: doc.hasBorder ? "1.1rem" : "0.1rem" }} />
+                       </div>
+                      </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+
               <DropdownMenuSeparator className="bg-black/5 dark:bg-white/5" />
               <DropdownMenuItem onClick={() => globalThis.print()} className="rounded-lg">
                 <Printer className="w-4 h-4 mr-2" /> Print

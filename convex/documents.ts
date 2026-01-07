@@ -33,6 +33,7 @@ export const archive = mutation({
         .collect();
 
       for (const child of children) {
+
         await context.db.patch(child._id, {
           isArchived: true,
         });
@@ -310,6 +311,8 @@ export const update = mutation({
     isPublished: v.optional(v.boolean()),
     parentDocument: v.optional(v.id("documents")), // <-- allow parentDocument
     isFolder: v.optional(v.boolean()),
+    format: v.optional(v.string()),
+    hasBorder: v.optional(v.boolean()),
   },
   handler: async (context, args) => {
     const identity = await context.auth.getUserIdentity();
@@ -319,6 +322,8 @@ export const update = mutation({
     }
 
     const userId = identity.subject;
+
+    console.log("Update args helper:", args);
 
     const { id, ...rest } = args;
 
@@ -724,5 +729,40 @@ export const restoreVersion = mutation({
     });
 
     return restoredDocument;
+  },
+});
+
+export const updatePageLayout = mutation({
+  args: {
+    id: v.id("documents"),
+    format: v.optional(v.string()),
+    hasBorder: v.optional(v.boolean()),
+  },
+  handler: async (context, args) => {
+    const identity = await context.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Unauthenticated");
+    }
+
+    const userId = identity.subject;
+
+    const { id, ...rest } = args;
+
+    const existingDocument = await context.db.get(id);
+
+    if (!existingDocument) {
+      throw new Error("Not found");
+    }
+
+    if (existingDocument.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const document = await context.db.patch(id, {
+      ...rest,
+    });
+
+    return document;
   },
 });

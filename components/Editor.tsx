@@ -101,8 +101,6 @@ export const Editor = ({
         lowlight,
         defaultLanguage: "javascript",
       }),
-      BulletList,
-      OrderedList,
       Underline,
       TipTapLink,
       CustomImageExtension,
