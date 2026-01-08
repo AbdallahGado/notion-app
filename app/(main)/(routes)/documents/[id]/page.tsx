@@ -198,7 +198,9 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
           onExportPDF={handleExportPDF}
           tocItemsCount={tocItems.length}
           onFormatChange={handleFormatChange}
+          format={effectiveFormat}
           onBorderToggle={handleBorderToggle}
+          hasBorder={!!effectiveHasBorder}
           font={localFont}
           margin={localMargin}
           onFontChange={handleFontChange}

@@ -34,7 +34,9 @@ interface DocumentHeaderProps {
   onExportPDF: () => void;
   tocItemsCount: number;
   onFormatChange: (format: string | undefined) => void;
+  format?: string;
   onBorderToggle: () => void;
+  hasBorder?: boolean;
   font: string;
   margin: string;
   onFontChange: (font: string) => void;
@@ -59,6 +61,8 @@ export const DocumentHeader = ({
   tocItemsCount,
   onFormatChange,
   onBorderToggle,
+  format,
+  hasBorder,
   font = "default",
   margin = "standard",
   onFontChange,
@@ -192,14 +196,14 @@ export const DocumentHeader = ({
                    {/* Format Section */}
                    <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Format</div>
                    <div className="grid grid-cols-2 gap-1 mb-2">
-                     {["A4", "A5", "Letter", "Full"].map((format) => {
-                       const value = format === "Full" ? undefined : format;
-                       const label = format === "Full" ? "Full Width" : format;
-                       const isActive = format === "Full" ? !doc.format : doc.format === value;
+                     {["A4", "A5", "Letter", "Full"].map((formatOption) => {
+                       const value = formatOption === "Full" ? undefined : formatOption;
+                       const label = formatOption === "Full" ? "Full Width" : formatOption;
+                       const isActive = formatOption === "Full" ? !format : format === value;
                        
                        return (
                         <DropdownMenuItem 
-                          key={format}
+                          key={formatOption}
                           onSelect={(e) => {
                             e.preventDefault();
                             onFormatChange(value);
@@ -214,8 +218,8 @@ export const DocumentHeader = ({
                          <div className={cn(
                            "w-6 h-8 border-2 mb-1.5 rounded-[2px] bg-white dark:bg-zinc-900 transition-all",
                            isActive ? "border-indigo-500 dark:border-indigo-400" : "border-zinc-300 dark:border-zinc-700 group-hover:border-zinc-400",
-                           format === "Full" && "w-10",
-                           format === "A5" && "h-6 w-5"
+                           formatOption === "Full" && "w-10",
+                           formatOption === "A5" && "h-6 w-5"
                          )} />
                          <span className="text-[10px] font-medium">{label}</span>
                          {isActive && <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />}
@@ -326,12 +330,12 @@ export const DocumentHeader = ({
                       </div>
                        <div className={cn(
                          "w-8 h-4 rounded-full transition-colors relative",
-                         doc.hasBorder ? "bg-indigo-500" : "bg-zinc-300 dark:bg-zinc-600"
+                         hasBorder ? "bg-indigo-500" : "bg-zinc-300 dark:bg-zinc-600"
                        )}>
                          <div className={cn(
                            "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all shadow-sm",
-                           doc.hasBorder ? "left-4.5" : "left-0.5"
-                         )} style={{ left: doc.hasBorder ? "1.1rem" : "0.1rem" }} />
+                           hasBorder ? "left-4.5" : "left-0.5"
+                         )} style={{ left: hasBorder ? "1.1rem" : "0.1rem" }} />
                        </div>
                       </DropdownMenuItem>
                   </DropdownMenuSubContent>
