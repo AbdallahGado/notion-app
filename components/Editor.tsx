@@ -43,7 +43,7 @@ import type { CommentType } from "@/app/(main)/(routes)/documents/comment-types"
 import { EditorBubbleMenu } from "@/app/(main)/_components/toolbar/EditorBubbleMenu";
 import BubbleMenuExtension from "@tiptap/extension-bubble-menu";
 import { useMediaQuery } from "usehooks-ts";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // Setup lowlight
 const lowlight = createLowlight({
@@ -71,7 +71,7 @@ interface EditorProps {
   setEditor?: (editor: TiptapEditor) => void;
 }
 
-export const Editor = ({ 
+export const Editor = React.memo(({ 
   initialContent, 
   editable = true, 
   onChange,
@@ -203,4 +203,4 @@ export const Editor = ({
         </div>
     </div>
   );
-};
+});

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -48,6 +48,7 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showToc, setShowToc] = useState(true);
   const [showMobileToc, setShowMobileToc] = useState(false);
+
   const [selectedComment, setSelectedComment] = useState<CommentType | null>(null);
 
   // Modular Hooks
@@ -97,7 +98,7 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
     }
   }, [documentId]);
 
-  const handleFormatChange = (format: string | undefined) => {
+  const handleFormatChange = useCallback((format: string | undefined) => {
     setLocalFormat(format);
     if (documentId) {
       if (format) {
@@ -107,9 +108,9 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
       }
     }
     toast.success(format ? `Format set to ${format}` : "Format reset to Full Width");
-  };
+  }, [documentId]);
 
-  const handleBorderToggle = () => {
+  const handleBorderToggle = useCallback(() => {
     setLocalHasBorder(prev => {
       const newState = !prev;
       if (documentId) {
@@ -118,35 +119,42 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
       toast.success(newState ? "Border added" : "Border removed");
       return newState;
     });
-  };
+  }, [documentId]);
 
-  const handleFontChange = (font: string) => {
+  const handleFontChange = useCallback((font: string) => {
     setLocalFont(font);
     if (documentId) localStorage.setItem(`notion-clone-font-${documentId}`, font);
     toast.success(`Font set to ${font}`);
-  };
+  }, [documentId]);
 
-  const handleMarginChange = (margin: string) => {
+  const handleMarginChange = useCallback((margin: string) => {
     setLocalMargin(margin);
     if (documentId) localStorage.setItem(`notion-clone-margin-${documentId}`, margin);
     toast.success(`Margin set to ${margin}`);
-  };
+  }, [documentId]);
 
-
-
-  const handleLineHeightChange = (height: string) => {
+  const handleLineHeightChange = useCallback((height: string) => {
     setLocalLineHeight(height);
     if (documentId) localStorage.setItem(`notion-clone-line-height-${documentId}`, height);
     toast.success(`Line spacing set to ${height}`);
-  };
+  }, [documentId]);
 
-  // Determine effective values (prioritize local state if set, else doc)
-  // Note: For border, if local is undefined, verify if doc has it. 
-  // Ideally, doc.format/hasBorder are the source of truth, but due to server sync issues, we fallback to local.
-  const effectiveFormat = localFormat ?? doc?.format;
-  const effectiveHasBorder = localHasBorder ?? doc?.hasBorder;
+  const handleSelectTemplate = useCallback((id: string) => {
+    const template = templates.find(t => t.id === id);
+    if (template && editor) {
+      editor.commands.setContent(template.content);
+      toast.success(`Template "${template.title}" applied`);
+    }
+    setShowTemplatesModal(false);
+  }, [editor]);
 
-  // Comment Handlers (Could be moved to its own hook later)
+  const handleCloseTemplates = useCallback(() => setShowTemplatesModal(false), []);
+  const handleCloseSearch = useCallback(() => setShowSearchModal(false), []);
+
+  const effectiveFormat = useMemo(() => localFormat ?? doc?.format, [localFormat, doc?.format]);
+  const effectiveHasBorder = useMemo(() => localHasBorder ?? doc?.hasBorder, [localHasBorder, doc?.hasBorder]);
+
+  // Comment Handlers
   const onToggleResolve = useCallback(async (id: string, resolved: boolean) => {
     try {
       await updateComment({ id: id as Id<"comments">, resolved: !resolved });
@@ -184,7 +192,7 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
 
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-gradient-to-br from-slate-50/30 via-white/20 to-slate-100/30 dark:from-slate-900/30 dark:via-slate-800/20 dark:to-slate-900/30">
         <DocumentHeader
-          doc={doc} // We still pass doc, but override visual state in the layout below
+          doc={doc}
           isLargeScreen={isLargeScreen}
           isCollapsed={isCollapsed}
           onResetWidth={resetWidth}
@@ -209,13 +217,28 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
           onLineHeightChange={handleLineHeightChange}
         />
 
-        <div className="flex-1 overflow-y-auto pb-40 scroll-smooth">
-          <div className="flex-1 max-w-4xl mx-auto p-8 sm:p-12 md:p-16 relative">
+        {/* Toolbar - Fixed outside document */}
+        <div className="w-full bg-gradient-to-br from-slate-50/30 via-white/20 to-slate-100/30 dark:from-slate-900/30 dark:via-slate-800/20 dark:to-slate-900/30 border-b border-black/5 dark:border-white/5 overflow-x-hidden">
+          <div className="max-w-4xl mx-auto px-8 py-2">
+            <EditorToolbar editor={editor} onFileUpload={handleFileUpload} />
+          </div>
+        </div>
 
+        <div className="flex-1 overflow-y-auto pb-40 scroll-smooth custom-scrollbar">
+          <div className={cn(
+            "flex-1 mx-auto relative",
+            effectiveFormat === "A4" && "max-w-[850px] py-12 px-8 sm:px-12 md:px-16",
+            effectiveFormat === "A5" && "max-w-[600px] py-12 px-6 sm:px-10 md:px-12",
+            effectiveFormat === "Letter" && "max-w-[850px] py-12 px-8 sm:px-12 md:px-16",
+            !effectiveFormat && "max-w-4xl p-8 sm:p-12 md:p-16"
+          )}>
             <div 
               className={cn(
-                "w-full max-w-none relative min-h-[500px] mb-20 transition-all duration-300 mx-auto bg-white/50 dark:bg-[#1A1B26]/50 backdrop-blur-sm",
+                "relative transition-all duration-300 mx-auto",
+                "w-full min-h-[500px] mb-20 bg-white/50 dark:bg-[#1A1B26]/50 backdrop-blur-sm shadow-sm",
+                
                 effectiveHasBorder && "border border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl",
+                
                 // Padding based on margin selection
                 localMargin === "standard" && "p-8 sm:p-12 md:p-16",
                 localMargin === "wide" && "p-12 sm:p-20 md:p-24",
@@ -224,21 +247,13 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
                 // Font family
                 localFont === "serif" && "font-serif",
                 localFont === "mono" && "font-mono",
-                // Default font is already sans
 
                 // Line Height
                 localLineHeight === "tight" && "[&_.ProseMirror]:leading-tight [&_.ProseMirror_p]:leading-tight",
                 localLineHeight === "loose" && "[&_.ProseMirror]:leading-loose [&_.ProseMirror_p]:leading-loose",
                 localLineHeight === "normal" && "[&_.ProseMirror]:leading-normal [&_.ProseMirror_p]:leading-normal",
-
-                effectiveFormat === "A4" && "max-w-[210mm] min-h-[297mm]",
-                effectiveFormat === "A5" && "max-w-[148mm] min-h-[210mm]",
-                effectiveFormat === "Letter" && "max-w-[216mm] min-h-[279mm]",
-                !effectiveFormat && "max-w-4xl" // Default behavior
               )}
             >
-            <EditorToolbar editor={editor} onFileUpload={handleFileUpload} />
-
               <Editor
                 initialContent={doc.content}
                 editable={!doc.isArchived}
@@ -256,14 +271,13 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
 
             {selectedComment && (
               <CommentPopup
-              
                 comment={selectedComment}
                 onClose={() => setSelectedComment(null)}
                 onToggleResolve={(id) => onToggleResolve(id, !!selectedComment.resolved)}
                 onDeleteComment={onDeleteComment}
-                onAddReply={() => { /* handle reply */ }}
-                onEditReply={() => { /* handle edit */ }}
-                onDeleteReply={() => { /* handle delete */ }}
+                onAddReply={() => {}}
+                onEditReply={() => {}}
+                onDeleteReply={() => {}}
               />
             )}
           </div>
@@ -272,17 +286,10 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
 
       <DocumentModals
         showTemplates={showTemplatesModal}
-        onCloseTemplates={() => setShowTemplatesModal(false)}
-        onSelectTemplate={(id) => {
-          const template = templates.find(t => t.id === id);
-          if (template && editor) {
-            editor.commands.setContent(template.content);
-            toast.success(`Template "${template.title}" applied`);
-          }
-          setShowTemplatesModal(false);
-        }}
+        onCloseTemplates={handleCloseTemplates}
+        onSelectTemplate={handleSelectTemplate}
         showSearch={showSearchModal}
-        onCloseSearch={() => setShowSearchModal(false)}
+        onCloseSearch={handleCloseSearch}
         onSearch={performSearch}
         onReplace={performReplace}
         recentSearches={recentSearches}

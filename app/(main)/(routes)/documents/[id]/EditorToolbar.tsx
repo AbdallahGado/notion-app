@@ -113,7 +113,7 @@ function EditorToolbar({ editor, onFileUpload }: EditorToolbarProps) {
   };
 
   return (
-    <div className="flex sticky top-0 z-40 mx-auto w-full max-w-4xl items-center justify-start gap-1 p-1 mb-6 rounded-xl border border-black/5 dark:border-white/5 bg-white/80 dark:bg-[#0b0c14]/80 backdrop-blur-xl shadow-sm transition-all duration-300 overflow-x-auto scrollbar-hide">
+    <div className="inline-flex z-40 items-center justify-start gap-1 p-1 pb-2 rounded-xl border border-black/5 dark:border-white/5 bg-white/80 dark:bg-[#0b0c14]/80 backdrop-blur-xl shadow-sm transition-all duration-300 overflow-x-auto toolbar-scrollbar">
       {/* Hidden file input for image uploads */}
       <input
         ref={fileInputRef}

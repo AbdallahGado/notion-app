@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["Jotion", "lucide", "Sonner", "usehooks"]
+  "cSpell.words": ["Jotion", "lucide", "Sonner", "usehooks"],
+  "css.lint.unknownAtRules": "ignore"
 }

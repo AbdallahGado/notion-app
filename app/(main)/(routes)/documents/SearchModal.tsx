@@ -36,7 +36,7 @@ const defaultFilters: SearchFilters = {
   preserveCase: false,
 };
 
-export default function SearchModal({
+export default React.memo(function SearchModal({
   isOpen,
   onClose,
   onSearch,
@@ -333,4 +333,4 @@ export default function SearchModal({
       </motion.div>
     </AnimatePresence>
   );
-}
+});

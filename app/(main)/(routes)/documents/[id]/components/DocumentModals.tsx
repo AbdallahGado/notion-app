@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import TemplatesModal from "@/app/(main)/(routes)/documents/TemplatesModal";
-import SearchModal from "@/app/(main)/(routes)/documents/SearchModal";
 import KeyboardShortcuts from "@/app/(main)/_components/KeyboardShortcuts";
 import { SearchFilters } from "../hooks/use-document-editor";
+
+const TemplatesModal = React.lazy(() => import("@/app/(main)/(routes)/documents/TemplatesModal"));
+const SearchModal = React.lazy(() => import("@/app/(main)/(routes)/documents/SearchModal"));
 
 interface DocumentModalsProps {
   showTemplates: boolean;
@@ -18,7 +19,7 @@ interface DocumentModalsProps {
   onAddToRecent: (query: string) => void;
 }
 
-export const DocumentModals = ({
+export const DocumentModals = React.memo(({
   showTemplates,
   onCloseTemplates,
   onSelectTemplate,
@@ -30,21 +31,25 @@ export const DocumentModals = ({
   onAddToRecent,
 }: DocumentModalsProps) => {
   return (
-    <>
-      <TemplatesModal
-        open={showTemplates}
-        onClose={onCloseTemplates}
-        onSelectTemplate={onSelectTemplate}
-      />
-      <SearchModal
-        isOpen={showSearch}
-        onClose={onCloseSearch}
-        onSearch={onSearch}
-        onReplace={onReplace}
-        recentSearches={recentSearches}
-        onAddToRecent={onAddToRecent}
-      />
+    <React.Suspense fallback={null}>
+      {showTemplates && (
+        <TemplatesModal
+          open={showTemplates}
+          onClose={onCloseTemplates}
+          onSelectTemplate={onSelectTemplate}
+        />
+      )}
+      {showSearch && (
+        <SearchModal
+          isOpen={showSearch}
+          onClose={onCloseSearch}
+          onSearch={onSearch}
+          onReplace={onReplace}
+          recentSearches={recentSearches}
+          onAddToRecent={onAddToRecent}
+        />
+      )}
       <KeyboardShortcuts />
-    </>
+    </React.Suspense>
   );
-};
+});
