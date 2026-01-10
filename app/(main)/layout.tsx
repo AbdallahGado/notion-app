@@ -26,11 +26,11 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="h-full flex dark:bg-[#1F1F1F]">
-        <Navigation />
+        <Navigation className="no-print" />
         <main className="flex-1 h-full overflow-y-auto">
           {children}
         </main>
-        <KeyboardShortcuts />
+        <KeyboardShortcuts className="no-print" />
       </div>
     </SidebarProvider>
   );

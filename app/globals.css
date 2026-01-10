@@ -1555,3 +1555,88 @@ body.dragging * {
 .dark .show-scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
   background-color: rgba(71, 85, 105, 0.5);
 }
+/* ... existing code ... */
+
+@media print {
+  .no-print,
+  aside,
+  nav,
+  header,
+  .fixed,
+  .sticky,
+  button,
+  [role="button"] {
+    display: none !important;
+  }
+
+  body, 
+  html {
+    background: white !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .flex,
+  .grid {
+    display: block !important;
+  }
+
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Reset document container for print */
+  .max-w-4xl,
+  .max-w-\[850px\],
+  .max-w-\[600px\],
+  .mx-auto {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .border,
+  .border-b,
+  .border-r,
+  .border-t,
+  .border-l {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .min-h-\[500px\],
+  .h-full {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .overflow-y-auto,
+  .overflow-hidden,
+  .overflow-x-hidden {
+    overflow: visible !important;
+  }
+
+  .ProseMirror {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

@@ -43,6 +43,7 @@ interface DocumentHeaderProps {
   onMarginChange: (margin: string) => void;
   lineHeight: string;
   onLineHeightChange: (height: string) => void;
+  className?: string;
 }
 
 export const DocumentHeader = ({
@@ -69,10 +70,11 @@ export const DocumentHeader = ({
   onMarginChange,
   lineHeight = "normal",
   onLineHeightChange,
+  className,
 }: DocumentHeaderProps) => {
 
   return (
-    <div className="z-50 w-full bg-white/60 dark:bg-[#0b0c14]/60 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-all duration-500 h-14 md:h-16 flex items-center shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04),0_10px_20px_-2px_rgba(0,0,0,0.02)]">
+    <div className={cn("z-50 w-full bg-white/60 dark:bg-[#0b0c14]/60 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-all duration-500 h-14 md:h-16 flex items-center shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04),0_10px_20px_-2px_rgba(0,0,0,0.02)]", className)}>
       <div className="w-full px-4 md:px-6 flex items-center justify-between gap-4">
         
         {/* Left Section */}
@@ -100,20 +102,18 @@ export const DocumentHeader = ({
               </Button>
             )}
 
-            {tocItemsCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-8 w-8 p-0 transition-all duration-300 hover:scale-110 active:scale-95 hidden md:inline-flex",
-                  showToc ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-inner" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                )}
-                onClick={onToggleToc}
-                title={showToc ? "Hide TOC" : "Show TOC"}
-              >
-                {showToc ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-8 w-8 p-0 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center",
+                showToc ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-inner" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              )}
+              onClick={onToggleToc}
+              title={showToc ? "Hide TOC" : "Show TOC"}
+            >
+              {showToc ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+            </Button>
           </div>
 
           <div className="flex items-center gap-3 min-w-0 group/breadcrumb">

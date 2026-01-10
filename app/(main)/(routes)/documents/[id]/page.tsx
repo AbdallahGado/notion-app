@@ -188,10 +188,12 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
         toggleAllExpansion={toggleAllExpansion}
         setShowToc={setShowToc}
         setShowMobileToc={setShowMobileToc}
+        className="no-print"
       />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-gradient-to-br from-slate-50/30 via-white/20 to-slate-100/30 dark:from-slate-900/30 dark:via-slate-800/20 dark:to-slate-900/30">
         <DocumentHeader
+          className="no-print"
           doc={doc}
           isLargeScreen={isLargeScreen}
           isCollapsed={isCollapsed}
@@ -218,7 +220,7 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
         />
 
         {/* Toolbar - Fixed outside document */}
-        <div className="w-full bg-gradient-to-br from-slate-50/30 via-white/20 to-slate-100/30 dark:from-slate-900/30 dark:via-slate-800/20 dark:to-slate-900/30 border-b border-black/5 dark:border-white/5 overflow-x-hidden">
+        <div className="w-full bg-gradient-to-br from-slate-50/30 via-white/20 to-slate-100/30 dark:from-slate-900/30 dark:via-slate-800/20 dark:to-slate-900/30 border-b border-black/5 dark:border-white/5 overflow-x-hidden no-print">
           <div className="max-w-4xl mx-auto px-8 py-2">
             <EditorToolbar editor={editor} onFileUpload={handleFileUpload} />
           </div>
@@ -265,7 +267,7 @@ export default function DocumentPage({ params }: { params: { id?: string } }) {
               />
             </div>
 
-            <div className="fixed bottom-6 right-8 z-[100] px-3.5 py-1.5 rounded-full bg-white/60 dark:bg-[#0b0c14]/60 backdrop-blur-md border border-black/5 dark:border-white/5 shadow-sm text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 hidden md:block">
+            <div className="fixed bottom-6 right-8 z-[100] px-3.5 py-1.5 rounded-full bg-white/60 dark:bg-[#0b0c14]/60 backdrop-blur-md border border-black/5 dark:border-white/5 shadow-sm text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 hidden md:block no-print">
               {counts.words} <span className="text-[10px] uppercase opacity-60">words</span> | {counts.chars} <span className="text-[10px] uppercase opacity-60">chars</span>
             </div>
 

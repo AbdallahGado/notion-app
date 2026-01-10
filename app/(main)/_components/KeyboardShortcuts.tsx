@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -20,6 +21,7 @@ import {
 export interface KeyboardShortcutsProps {
   readonly onClose?: () => void;
   readonly defaultIsOpen?: boolean;
+  readonly className?: string;
 }
 
 interface ShortcutCategory {
@@ -144,6 +146,7 @@ const SHORTCUT_CATEGORIES: ShortcutCategory[] = [
 export default function KeyboardShortcuts({
   onClose,
   defaultIsOpen = false,
+  className,
 }: KeyboardShortcutsProps) {
   const [showOverlay, setShowOverlay] = useState(defaultIsOpen);
   const [searchQuery, setSearchQuery] = useState("");
@@ -269,7 +272,7 @@ export default function KeyboardShortcuts({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: ANIMATION_DURATION }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            className={cn("fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto", className)}
             onClick={handleClose}
           >
             <motion.div

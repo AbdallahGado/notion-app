@@ -17,7 +17,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { TreeItem } from "./navigation/TreeItem";
 
-export const Navigation = () => {
+export const Navigation = ({ className }: { className?: string }) => {
   const isResizingRef = useRef(false);
   const pathname = usePathname();
   const create = useMutation(api.documents.create);
@@ -165,7 +165,7 @@ export const Navigation = () => {
   }
 
   return (
-    <aside ref={sidebarRef as React.RefObject<HTMLDivElement>} className={cn("group/sidebar h-full bg-slate-50 dark:bg-[#111] relative flex w-60 flex-col z-[40] border-r border-slate-200 dark:border-white/5", isCollapsed && "w-0 border-none")}>
+    <aside ref={sidebarRef as React.RefObject<HTMLDivElement>} className={cn("group/sidebar h-full bg-slate-50 dark:bg-[#111] relative flex w-60 flex-col z-[40] border-r border-slate-200 dark:border-white/5", isCollapsed && "w-0 border-none", className)}>
         <div className={cn("h-full", isCollapsed && "hidden")}>
             <SidebarContent />
             <div onMouseDown={handleMouseDown} className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-slate-300 dark:bg-slate-700 right-0 top-0" />
