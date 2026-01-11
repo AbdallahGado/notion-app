@@ -15,7 +15,7 @@ export const Navbar = () => {
   return (
     <nav
       className={cn(
-        `z-50 fixed top-0 flex items-center w-full p-6 transition-all duration-300 glass`,
+        `z-50 fixed top-0 flex items-center w-full p-6 transition-all duration-300 glass !border-none`,
         scrolled && "shadow-modern-strong",
         "hover:shadow-modern-medium"
       )}

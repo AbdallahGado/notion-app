@@ -52,9 +52,9 @@ const MarketingLayout = ({ children }: { children: React.ReactNode }) => {
           </Script>
         </>
       )}
-      <div className="h-full dark:bg-[#1F1F1F]">
+      <div className="h-full dark:bg-[#111]">
+        <Navbar />
         <main className="h-full pt-28">
-          <Navbar />
           {children}
         </main>
       </div>
