@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -171,13 +172,15 @@ const MarketingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
                 Get Started Free
             </Button>
-            <Button 
-                variant="ghost"
-                size="lg"
-                className="rounded-full px-8 h-12 text-base font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-transparent group"
-            >
-                Read the manifest <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link href="/manifest">
+                <Button 
+                    variant="ghost"
+                    size="lg"
+                    className="rounded-full px-8 h-12 text-base font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-transparent group"
+                >
+                    Read the manifest <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+            </Link>
         </div>
 
         {/* CSS-ONLY APP MOCKUP (No Images, Low Latency, High Fidelity) */}
@@ -375,13 +378,17 @@ const MarketingPage = () => {
                 <span className="font-bold text-slate-900 dark:text-white">Jotion</span>
             </div>
             <div className="flex gap-8 text-sm text-slate-500 dark:text-gray-500">
-                <span className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Privacy</span>
-                <span className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Terms</span>
-                <span className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Twitter</span>
-                <span className="hover:text-slate-900 dark:hover:text-white cursor-pointer">GitHub</span>
+                <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Privacy</Link>
+                <Link href="/terms" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">Terms</Link>
+                <Link href="https://github.com" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">GitHub</Link>
             </div>
-            <div className="text-xs text-slate-400">
-                &copy; 2025 Jotion Inc.
+            <div className="flex items-center gap-4 text-xs text-slate-400">
+                <span>&copy; 2025 Jotion Inc.</span>
+                <div className="h-3 w-[1px] bg-slate-200 dark:bg-white/10 hidden md:block" />
+                <div className="flex items-center gap-1.5 font-medium text-[10px] tracking-[0.2em] uppercase opacity-50 hover:opacity-100 transition-opacity">
+                    <span className="w-1 h-1 rounded-full bg-indigo-500" />
+                    Built by AG
+                </div>
             </div>
         </div>
       </footer>

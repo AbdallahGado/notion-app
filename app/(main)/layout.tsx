@@ -10,6 +10,14 @@ import { SidebarProvider } from "@/components/providers/sidebar-provider";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  
+  React.useEffect(() => {
+    console.log(
+      "%c🚀 Built by AG%c\nThis project is protected by AG's custom signature.",
+      "color: #6366f1; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);",
+      "color: #94a3b8; font-size: 12px;"
+    );
+  }, []);
 
   if (isLoading) {
     return (

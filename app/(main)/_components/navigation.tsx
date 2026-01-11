@@ -150,6 +150,12 @@ export const Navigation = ({ className }: { className?: string }) => {
             {treeData.map(doc => <TreeItem key={doc._id} doc={doc} {...treeProps} />)}
             {treeData.length === 0 && <div className="text-center py-8 text-xs text-slate-400">No results.</div>}
         </div>
+        <div className="p-4 mt-auto border-t border-slate-200 dark:border-white/5">
+            <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium tracking-[0.2em] uppercase text-slate-400 dark:text-slate-500/50 select-none pointer-events-none">
+                <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                Built by AG
+            </div>
+        </div>
     </div>
   );
 

@@ -200,4 +200,4 @@ If you have any questions or need help, please:
 
 ---
 
-Made with ❤️ by the Jotion team
+Made with ❤️ by AG
