@@ -151,7 +151,7 @@ const MarketingPage = () => {
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-400 mb-8 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer group">
             <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-500 group-hover:animate-pulse"></span>
-            Jotion 2.0 is here
+            Jotion 3.1 is here
             <ArrowRight className="w-3 h-3 ml-1 opacity-50 group-hover:translate-x-1 transition-transform" />
         </div>
 
@@ -383,7 +383,7 @@ const MarketingPage = () => {
                 <Link href="https://github.com" className="hover:text-slate-900 dark:hover:text-white cursor-pointer">GitHub</Link>
             </div>
             <div className="flex items-center gap-4 text-xs text-slate-400">
-                <span>&copy; 2025 Jotion Inc.</span>
+                <span>&copy; 2026 Jotion Inc.</span>
                 <div className="h-3 w-[1px] bg-slate-200 dark:bg-white/10 hidden md:block" />
                 <div className="flex items-center gap-1.5 font-medium text-[10px] tracking-[0.2em] uppercase opacity-50 hover:opacity-100 transition-opacity">
                     <span className="w-1 h-1 rounded-full bg-indigo-500" />
